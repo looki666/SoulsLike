@@ -9,9 +9,13 @@ public class MyCharacterController : MonoBehaviour {
     Vector3 input;
     Rigidbody rb;
 
-    Vector3 GRAVITY = new Vector3(0, -9.8f, 0);
+    const float GRAVITY = -9.8f;
+    float JumpSpeed;
 
     public bool isGrounded;
+    public bool isJumping;
+    public bool isSprinting;
+    public bool isSprintToggle;
     float nJumps = 0;
 
     // Use this for initialization
@@ -22,38 +26,59 @@ public class MyCharacterController : MonoBehaviour {
 
         Cursor.lockState = CursorLockMode.Locked;
     }
-	
-	// Update is called once per frame
+
 	void Update () {
 
-        input = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+        input = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")).normalized;
         //animator.SetFloat("vertical", input.y);
+
+        RaycastHit hit;
+        if (isGrounded =
+            Physics.CapsuleCast(transform.position - new Vector3(0, 0.5f, 0), transform.position + new Vector3(0, 0.5f, 0), 0.5f, -transform.up, out hit, 2f))
+        {
+            nJumps = 0;
+            isJumping = false;
+        }
 
         if (Input.GetKeyDown(KeyCode.Space) && (isGrounded || (bodyParts.LegPart.DoubleJump && nJumps <= 1)))
         {
-            transform.Translate(0, bodyParts.LegPart.JumpHeight, 0);
+            isJumping = true;
+            JumpSpeed = bodyParts.LegPart.JumpHeight;
             nJumps++;
         }
+
+        if (isSprintToggle)
+        {
+            if(Input.GetKeyDown(KeyCode.LeftShift))
+            isSprinting = !isSprinting;
+        }
+        else
+            isSprinting = Input.GetKey(KeyCode.LeftShift);
 
         if (Input.GetKeyDown("escape"))
             Cursor.lockState = CursorLockMode.None;
 
-        RaycastHit hit;
-        if(isGrounded = 
-            Physics.CapsuleCast(transform.position - new Vector3(0,0.5f,0), transform.position + new Vector3(0, 0.5f, 0), 0.5f, -transform.up, out hit, 0.25f) )
-        {
-            nJumps = 0;
-        }
       
     }
 
 
     void FixedUpdate()
     {
-        Vector3 speed = (transform.forward * input.z + transform.right * input.x) * bodyParts.LegPart.MovementSpeed;
+        Vector3 speed = (transform.forward * input.z + transform.right * input.x);
 
-        if(!isGrounded)
-            speed += GRAVITY;
+        if (isSprinting)
+            speed *= bodyParts.LegPart.RunningSpeed;
+        else
+            speed *= bodyParts.LegPart.MovementSpeed;
+
+        if (!isGrounded)
+            speed.y += GRAVITY;
+
+        if (isJumping)
+        {
+            speed.y += JumpSpeed;
+            JumpSpeed -= Time.deltaTime*100;
+        }
 
         Vector3 mov = rb.position + speed * Time.deltaTime;
         rb.MovePosition(mov);
