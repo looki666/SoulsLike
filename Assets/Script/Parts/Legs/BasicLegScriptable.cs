@@ -9,8 +9,10 @@ public class BasicLegScriptable : ScriptableObject {
     public float runningSpeed;
     public float jumpHeight;
     public bool doubleJump;
+    public bool wallRunHorizontal;
+    public bool wallRunVertical;
 
-    public void MovementAbilityAbility()
+    public void MovementAbility()
     {
         Debug.Log("Ability Movement Leg");
     }

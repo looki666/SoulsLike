@@ -10,6 +10,13 @@ public class LegPart : MonoBehaviour {
     public float RunningSpeed { get { return legData.runningSpeed; } set { legData.runningSpeed = value; } }
     public float JumpHeight { get { return legData.jumpHeight; } set { legData.jumpHeight = value; } }
     public bool DoubleJump { get { return legData.doubleJump; } set { legData.doubleJump = value; } }
+    public bool WallRunHorizontal { get { return legData.wallRunHorizontal; } set { legData.wallRunHorizontal = value; } }
+    public bool WallRunVertical { get { return legData.wallRunVertical; } set { legData.wallRunVertical = value; } }
+
+    public void MovementAbility()
+    {
+        legData.MovementAbility();
+    }
 
 
     // Use this for initialization
