@@ -4,10 +4,14 @@ using UnityEngine;
 
 public class CharacterBodyCostumization : MonoBehaviour {
 
-    ArmPart armPart;
-    TorsoPart torsoPart;
-    LegPart legPart;
+    private ArmPart armPart;
+    private TorsoPart torsoPart;
+    private LegPart legPart;
 
+    private ECombatInputType noInput = ECombatInputType.NONE;
+    private Vector3 speed;
+    private bool isJumping;
+    private bool isSprinting;
 
     public ArmPart ArmsPart
     {
@@ -34,18 +38,37 @@ public class CharacterBodyCostumization : MonoBehaviour {
 	
     // Update is called once per frame
     void Update () {
+        ECombatInputType someInputWasPressed = noInput;
 
         if (Input.GetMouseButtonDown(0))
         {
-            armPart.BasicAttack();
+            someInputWasPressed = ECombatInputType.WEAK_ATTACK;
         }
 
         if (Input.GetMouseButtonDown(1))
         {
-            armPart.HeavyAttack();
+            if (someInputWasPressed == ECombatInputType.WEAK_ATTACK) {
+                someInputWasPressed = ECombatInputType.BOTH_ATTACKS;
+            } else
+            {
+                someInputWasPressed = ECombatInputType.STRONG_ATTACK;
+            }
+
+        }
+
+        if(someInputWasPressed != ECombatInputType.NONE)
+        {
+            CombatInput input = new CombatInput(speed, isJumping, isSprinting, someInputWasPressed);
+            armPart.fightHandler.ReceiveInput(input);
         }
 
     }
 
+    public void SetMovementState(Vector3 speed, bool isJumping, bool isSprinting)
+    {
+        this.speed = speed;
+        this.isJumping = isJumping;
+        this.isSprinting = isSprinting;
+    }
 
 }

@@ -4,83 +4,152 @@ using UnityEngine;
 
 public class MyCharacterController : MonoBehaviour {
 
+    /**
+     * Character Components.
+     */
     Animator animator;
     CharacterBodyCostumization bodyParts;
     Vector3 input;
     Rigidbody rb;
 
+    /**
+     * Variables that handle falling movement.
+     */
+    const float ACCEL = 0.5f;
     const float GRAVITY = 9.8f;
-    float JumpSpeed;
+    public float fallSpeed = 1.5f;
+    public float fallSpeedIncrementer = 0.1f;
 
-    public bool isGrounded;
-    public bool jump;
-    public bool isJumping;
-    public bool isSprinting;
-    public bool isSprintToggle;
-    float nJumps = 0;
+    [SerializeField]
+    [ReadOnly]
+    private bool isGrounded;
+
+    /**
+     * Variables that handle jumping movement.
+     */
+    [SerializeField]
+    [ReadOnly]
+    private float JumpSpeed;
+    private bool jump;
+    public bool canJump = true;
+    [SerializeField]
+    [ReadOnly]
+    private bool isJumping;
+
+    float currentJumpNumber = 0;
+
+    /**
+     * Variables that handle sprint.
+     */
+    public bool canSprint = true;
+    public bool canSprintToggle = false;
+    [SerializeField]
+    [ReadOnly]
+    private bool isSprinting;
+
+    /**
+     * Variables that handle crouch.
+     */
+    public bool canCrouch = true;
+    public bool canCrouchToggle = false;
+    [SerializeField]
+    [ReadOnly]
+    private bool isCrouching;
+
+    public bool canSlide = true;
+
+    Vector3 speed;
+    float gravitySpeed;
+    Vector3 boxColliderDimensions;
+    RaycastHit hit;
 
     // Use this for initialization
     void Start () {
         isGrounded = false;
-        jump = false;
         isJumping = false;
         isSprinting = false;
+        isCrouching = false;
+
+        isGrounded =
+            Physics.BoxCast(transform.position, boxColliderDimensions, -transform.up, out hit, Quaternion.identity, speed.y * Time.deltaTime);
+        jump = false;
+        gravitySpeed = GRAVITY * fallSpeed;
+        boxColliderDimensions = new Vector3(2 / 3f, 1f, 2 / 3f);
 
         animator = GetComponent<Animator>();
         bodyParts = GetComponent<CharacterBodyCostumization>();
         rb = GetComponent<Rigidbody>();
-
-        //Cursor.lockState = CursorLockMode.Locked;
     }
 
 	void Update () {
 
         input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
         //animator.SetFloat("vertical", input.y);
-        if (Input.GetKeyDown(KeyCode.Space) && (isGrounded || (bodyParts.LegPart.DoubleJump && nJumps <= 1)))
+        if (Input.GetKeyDown(KeyCode.Space) && (isGrounded || (currentJumpNumber < bodyParts.LegPart.JumpNumber)))
         {
             jump = true;
             JumpSpeed = bodyParts.LegPart.JumpHeight;
-            nJumps++;
+            gravitySpeed = GRAVITY * fallSpeed;
+            currentJumpNumber++;
         }
 
-        if (isSprintToggle)
+        if (canSprint)
         {
-            if(Input.GetKeyDown(KeyCode.LeftShift))
-            isSprinting = !isSprinting;
+            if (canSprintToggle)
+            {
+                if (Input.GetKeyDown(KeyCode.LeftShift))
+                    isSprinting = !isSprinting;
+            }
+            else
+            {
+                isSprinting = Input.GetKey(KeyCode.LeftShift);
+            }
         }
-        else
-            isSprinting = Input.GetKey(KeyCode.LeftShift);
 
         if (Input.GetKeyDown("escape"))
+        {
             Cursor.lockState = CursorLockMode.None;
+        }
 
-      
-    }
+        if (canCrouch) {
+            isCrouching = Input.GetKey(KeyCode.LeftControl);
+        }
+        if (isCrouching)
+        {
+            transform.localScale = new Vector3(1, 0.5f, 1);
+        } else
+        {
+            transform.localScale = new Vector3(1, 1, 1);
+        }
 
-
-    void FixedUpdate()
-    {
-
-        Vector3 speed = (transform.forward * input.z + transform.right * input.x);
+        speed = (transform.forward * input.z + transform.right * input.x);
 
         if (isSprinting)
-            speed *= bodyParts.LegPart.RunningSpeed;
-        else
-            speed *= bodyParts.LegPart.MovementSpeed;
-
-        RaycastHit hit;
-        if (isGrounded =
-            Physics.BoxCast(rb.position, new Vector3(2 / 3f, 1f, 2 / 3f), -transform.up, out hit, Quaternion.identity, GRAVITY * Time.deltaTime)
-            )
         {
-            //retrieve the normal of the ground in order to go up slopes with crossproduct
-            nJumps = 0;
-            isJumping = false;
+            speed *= bodyParts.LegPart.RunningSpeed;
+        }
+        else
+        {
+            speed *= bodyParts.LegPart.MovementSpeed;
+        }
+
+        if (!jump)
+        {
+            if (isGrounded =
+                Physics.BoxCast(transform.position, boxColliderDimensions, -transform.up, out hit, Quaternion.identity, gravitySpeed * Time.deltaTime)
+                )
+            {
+                //retrieve the normal of the ground in order to go up slopes with crossproduct
+                currentJumpNumber = 0;
+                isJumping = false;
+            }
         }
 
         if (!isGrounded)
-            speed.y -= GRAVITY;
+        {
+            gravitySpeed += fallSpeedIncrementer;
+            speed.y -= gravitySpeed;
+        }
 
         if (jump)
         {
@@ -95,31 +164,42 @@ public class MyCharacterController : MonoBehaviour {
 
         }
 
-        Vector3 mov = rb.position + speed * Time.deltaTime;
+        Vector3 mov = transform.position + speed * Time.deltaTime;
 
-        //collisions
-        if (Physics.BoxCast(rb.position, new Vector3(5 / 6f, 1f, 5 / 6f), speed.normalized, out hit, Quaternion.identity, speed.magnitude * Time.deltaTime))
+
+        /**
+         * Spherecast in the direction of the movement.
+         */
+        float radius = .6f;
+        Vector3 v2 = new Vector3(speed.x, 0f, speed.z);
+        if (Physics.SphereCast(transform.position, radius, v2.normalized, out hit, speed.magnitude * Time.deltaTime))
         {
             Debug.Log("Collision");
-            mov = rb.position + (hit.transform.position - rb.position);
+            Vector3 dirToCollision = (hit.collider.ClosestPointOnBounds(transform.position) - transform.position);
+            dirToCollision.y = 0f;
+            mov = transform.position + dirToCollision.normalized * (dirToCollision.magnitude - radius);
+            mov.y += speed.y * Time.deltaTime;
+            Debug.DrawRay(hit.collider.ClosestPointOnBounds(transform.position), -dirToCollision.normalized * (dirToCollision.magnitude - radius), Color.cyan, 10f);
         }
-
-        nextPositionGravity = rb.position -transform.up * GRAVITY * Time.deltaTime;
-        nextPositionMovement = rb.position + speed * Time.deltaTime;
-
-        rb.MovePosition(mov);
+        
+        /**
+         * Apply calculated movement; 
+         */
+        transform.position = mov;
+        bodyParts.SetMovementState(speed, isJumping, isSprinting);
     }
 
-    Vector3 nextPositionGravity;
-    Vector3 nextPositionMovement;
-
+    /**
+     * Helper gizmos.
+     */ 
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawCube(nextPositionGravity, new Vector3(2 / 3f, 1f, 2 / 3f));
-        Gizmos.color = Color.blue;
-        Gizmos.DrawCube(nextPositionMovement, new Vector3(5 / 6f, 1f, 5 / 6f));
+        Vector3 offset = new Vector3(0, -boxColliderDimensions.y / 2, 0);
+        Gizmos.DrawCube(transform.position + offset, boxColliderDimensions);
 
+        Gizmos.color = Color.blue;
+        Gizmos.DrawSphere(transform.position, .6f);
     }
     
 
