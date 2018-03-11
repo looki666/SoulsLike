@@ -6,4 +6,6 @@ public interface IFightStyleSolver {
 
     void ReceiveInput(CombatInput input);
     void HandleInput();
+    void SetAnimator(Animator animator);
+    bool IsAttacking { set; }
 }

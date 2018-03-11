@@ -20,6 +20,10 @@ public class MyKinematicCharacterController : MonoBehaviour {
     public float fallSpeed = 1.5f;
     public float fallSpeedIncrementer = 0.1f;
 
+    [SerializeField]
+    [ReadOnly]
+    private bool isSlopeSliding;
+
     private bool becameGrounded;
     [SerializeField]
     [ReadOnly]
@@ -60,8 +64,12 @@ public class MyKinematicCharacterController : MonoBehaviour {
 
     public bool canSlide = true;
 
-    Vector3 input;
+
+    [SerializeField]
+    [ReadOnly]
     Vector3 speed;
+
+    Vector3 input;
     float gravitySpeed;
     Vector3 boxColliderDimensions;
     RaycastHit hit;
@@ -69,6 +77,7 @@ public class MyKinematicCharacterController : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        isSlopeSliding = false;
         becameGrounded = false;
         isGrounded = false;
         isJumping = false;
@@ -90,7 +99,7 @@ public class MyKinematicCharacterController : MonoBehaviour {
 	void Update () {
 
         input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
-        //animator.SetFloat("vertical", input.y);
+
         if (Input.GetKeyDown(KeyCode.Space) && (isGrounded || (currentJumpNumber < bodyParts.LegPart.JumpNumber)))
         {
             jump = true;
@@ -138,7 +147,31 @@ public class MyKinematicCharacterController : MonoBehaviour {
 
     private void FixedUpdate()
     {
-        speed = (transform.forward * input.z + transform.right * input.x);
+        //Debug.Log("««««««««««««««««««««««««««start fixed update");
+        float Radius = 1f;
+        int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(transform.position, Radius + 0.1f,
+    nearbyColliders);
+
+        RaycastHit groundInfo;
+        Vector3 platformSpeed = Vector3.zero;
+        Vector3 walkingVector = transform.forward;
+        Vector3 sideWalkingVector = transform.right;
+
+        if (numbOfNearbyCols > 1) //if its colliding with something check grounding
+        {
+            if (becameGrounded = CheckGrounding(out groundInfo))
+            {
+                platformSpeed = AddSpeedFromPlatform(groundInfo.collider);
+                GetWalkingVector(groundInfo,out walkingVector,out sideWalkingVector);
+                Debug.DrawRay(transform.position, walkingVector * 5, Color.magenta);
+            }
+        }
+        else
+        {
+            becameGrounded = false;
+        }
+
+        speed = (walkingVector * input.z + sideWalkingVector * input.x);
         if (isSprinting)
         {
             speed *= bodyParts.LegPart.RunningSpeed;
@@ -148,22 +181,11 @@ public class MyKinematicCharacterController : MonoBehaviour {
             speed *= bodyParts.LegPart.MovementSpeed;
         }
 
-        float Radius = 1f;
-
-        int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(transform.position, Radius + 0.1f,
-            nearbyColliders);
-
         Vector3 disp = Vector3.zero;
-        Vector3 platformSpeed = Vector3.zero;
-        if (numbOfNearbyCols > 1) //if its colliding with something check grounding
+        if (numbOfNearbyCols > 1)
         {
-            platformSpeed = CheckGrounding();
-            disp = HandleCollision(ref speed, numbOfNearbyCols);
-        } else
-        {
-            becameGrounded = false;
+            disp = DePenetrateCollisions(ref speed, numbOfNearbyCols);
         }
-
 
         bool justLanded = becameGrounded && !isGrounded;
         bool justFell = (!isJumping || !jump) && !becameGrounded && isGrounded;
@@ -180,7 +202,7 @@ public class MyKinematicCharacterController : MonoBehaviour {
 
         isGrounded = becameGrounded;
 
-        if (!isGrounded)
+        if (!isGrounded || (isSlopeSliding && !isGrounded))
         {
             gravitySpeed += fallSpeedIncrementer;
             speed.y -= gravitySpeed;
@@ -201,11 +223,10 @@ public class MyKinematicCharacterController : MonoBehaviour {
         }
 
         bodyParts.SetMovementState(speed, isJumping, isSprinting);
-
         rb.MovePosition(rb.position + disp + (platformSpeed + speed) * Time.deltaTime);
     }
 
-    private Vector3 HandleCollision(ref Vector3 speed, int numbOfNearbyCols)
+    private Vector3 DePenetrateCollisions(ref Vector3 speed, int numbOfNearbyCols)
     {
         Vector3 displacement = new Vector3();
         Vector3 dir = new Vector3();
@@ -224,12 +245,16 @@ public class MyKinematicCharacterController : MonoBehaviour {
                 nearbyColliders[i].transform.rotation,
                 out dir, out dist))
             {
-
+                if (Vector3.Dot(dir, Vector3.up) < groundingAngle)
+                {
+                    dir.y = 0f;
+                    dir.Normalize();
+                }
                 // Get outta that collider!
                 displacement += dir * dist;
 
                 // Crop down the velocity component which is in the direction of penetration
-                if(Vector3.Dot(speed, dir) < 0)
+                if (Vector3.Dot(speed, dir) < 0)
                 {
                     speed -= Vector3.Project(speed, dir);
                 }
@@ -247,24 +272,33 @@ public class MyKinematicCharacterController : MonoBehaviour {
     /**
     * Check if Character is grounded by spherecasting the ground.
     */
-    private Vector3 CheckGrounding()
+    private bool CheckGrounding(out RaycastHit hitInfo)
     {
-        Vector3 platformSpeed = Vector3.zero;
-        becameGrounded = false;
-        RaycastHit hitInfo;
+        bool wasGrounded = isGrounded;
+        isSlopeSliding = false;
         if (Physics.SphereCast(transform.position, 0.5f, -transform.up, out hitInfo, 0.55f))
         {
             //Only walk on non-steep ground
+            //Debug.Log(Vector3.Dot(hitInfo.normal, Vector3.up) + ">>" + groundingAngle);
             if(Vector3.Dot(hitInfo.normal, Vector3.up) > groundingAngle)
             {
-                becameGrounded = true;
                 currentJumpNumber = 0;
                 isJumping = false;
-                platformSpeed = AddSpeedFromPlatform(hitInfo.collider);
+                return true;
+            } else {
+                isSlopeSliding = true;
+                return wasGrounded;
             }
+            
         }
+        return false;
+    }
 
-        return platformSpeed;
+    private void GetWalkingVector (RaycastHit groundInfo, out Vector3 walkingDir, out Vector3 sideDir)
+    {
+        Vector3 n = groundInfo.normal.normalized;
+        sideDir = Vector3.Cross(n, transform.forward.normalized);
+        walkingDir = Vector3.Cross(sideDir, n);
     }
 
     /**

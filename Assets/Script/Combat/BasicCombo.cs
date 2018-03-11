@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Basic : MonoBehaviour, IFightStyleSolver
+public class BasicCombo : MonoBehaviour, IFightStyleSolver
 {
 
     private Animator animator;
 
-    [SerializeField]
-    [ReadOnly]
     private bool isAttacking;
     public bool IsAttacking
     {
@@ -18,15 +16,11 @@ public class Basic : MonoBehaviour, IFightStyleSolver
         }
     }
 
-    private CombatInput input;
-
     // Use this for initialization
-    void Start()
-    {
-        input = null;
+    void Start () {
         isAttacking = false;
     }
-
+	
 	// Update is called once per frame
 	void Update () {
 		
@@ -40,26 +34,14 @@ public class Basic : MonoBehaviour, IFightStyleSolver
     public void ReceiveInput(CombatInput input)
     {
         Debug.Log(input.combatType);
-        Debug.Log(isAttacking);
-        Debug.Log(input);
-        if (this.input == null)
-        {
-            this.input = input;
-        }
-
         if (!isAttacking)
         {
             HandleInput();
-        } 
+        }
     }
 
     public void HandleInput()
     {
-        if (input != null)
-        {
-            Debug.Log("attack");
-            animator.SetTrigger("attack");
-            input = null;
-        }
+        animator.SetTrigger("attack");
     }
 }

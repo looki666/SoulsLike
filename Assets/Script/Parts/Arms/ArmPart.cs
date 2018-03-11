@@ -6,6 +6,7 @@ public class ArmPart : MonoBehaviour {
 
     public BasicArmScriptable armData;
     public IFightStyleSolver fightHandler;
+    private Animator animator;
 
     public float Damage { get { return armData.damage; } set { armData.damage = value; } }
     public float HeavyDamage { get { return armData.heavyDamage; } set { armData.heavyDamage = value; } }
@@ -13,6 +14,8 @@ public class ArmPart : MonoBehaviour {
     // Use this for initialization
     void Start () {
         fightHandler = GetComponent<IFightStyleSolver>();
+        animator = GetComponent<Animator>();
+        fightHandler.SetAnimator(animator);
     }
 	
 	// Update is called once per frame
