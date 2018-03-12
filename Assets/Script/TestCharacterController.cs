@@ -26,7 +26,7 @@ public class TestCharacterController : MonoBehaviour
         sphereCollider.enabled = false;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         Rotate();
         Move();
@@ -43,6 +43,7 @@ public class TestCharacterController : MonoBehaviour
         movement += ((Vector3.down * gravity) * Time.deltaTime);
         velocity += movement;
 
+        Debug.Log(velocity);
         velocity = MoveCollision(velocity * Time.deltaTime);
 
         velocity /= Time.deltaTime;
@@ -126,3 +127,21 @@ public class TestCharacterController : MonoBehaviour
         return transform.TransformDirection(inputDirection);
     }
 }
+
+/*
+ * - For corners, I made an algorithm that detects if we are casting against a "blocking corner" based on all the previous iterations made so far, and it stops the iterations accordingly.
+- For floating point errors, I always keep my collider 0.0001 units away from the hit surfaces, along the normals. That way, subsequent casts will never fail.
+- Additionally, all of my casts have a 0.001 "backstep distance", which means they start some tiny distance backwards from their intended startingpoint/direction
+- A small "MinimalVelocityClamp" value insures that there will be no jittering in certain corners
+ * 
+ * 
+ * 
+ Still on the topic of handling slightly parallel corridors with CCD, I think I have found a failure-proof solution.
+
+In short, at each step of the sweep test iterations (the for loop at line 58 of your example above), whenever you decide to move the character position (or "origin", in your example), you must first make an overlap test at that position. If there is no overlap, just keep moving the position as you would normally. However, if there ARE overlaps:
+project the movement against all overlap normals (which we find with ComputePenetration)
+do not move the position. just stay where you were at the start of the iteration
+proceed to the next step of the sweep iterations, with the new projected movement direction
+This method guarantees that you can never move the character in a position where it's overlapping with something. I'll need more testing, but it seems to work like a charm so far.
+     
+     */

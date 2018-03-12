@@ -147,7 +147,6 @@ public class MyKinematicCharacterController : MonoBehaviour {
 
     private void FixedUpdate()
     {
-        //Debug.Log("««««««««««««««««««««««««««start fixed update");
         float Radius = 1f;
         int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(transform.position, Radius + 0.1f,
     nearbyColliders);
@@ -159,6 +158,7 @@ public class MyKinematicCharacterController : MonoBehaviour {
 
         if (numbOfNearbyCols > 1) //if its colliding with something check grounding
         {
+            //Check grounding
             if (becameGrounded = CheckGrounding(out groundInfo))
             {
                 platformSpeed = AddSpeedFromPlatform(groundInfo.collider);
@@ -179,12 +179,6 @@ public class MyKinematicCharacterController : MonoBehaviour {
         else
         {
             speed *= bodyParts.LegPart.MovementSpeed;
-        }
-
-        Vector3 disp = Vector3.zero;
-        if (numbOfNearbyCols > 1)
-        {
-            disp = DePenetrateCollisions(ref speed, numbOfNearbyCols);
         }
 
         bool justLanded = becameGrounded && !isGrounded;
@@ -220,6 +214,12 @@ public class MyKinematicCharacterController : MonoBehaviour {
         {
             speed.y += JumpSpeed;
             JumpSpeed = Mathf.Max(0, JumpSpeed - Time.deltaTime * Time.deltaTime * 2000);
+        }
+
+        Vector3 disp = Vector3.zero;
+        if (numbOfNearbyCols > 1)
+        {
+            disp = DePenetrateCollisions(ref speed, numbOfNearbyCols);
         }
 
         bodyParts.SetMovementState(speed, isJumping, isSprinting);
