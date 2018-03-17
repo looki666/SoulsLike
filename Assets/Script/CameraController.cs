@@ -17,7 +17,7 @@ public class CameraController : MonoBehaviour {
         mouse *= 2f;
         mouseLook += mouse;
 
-        transform.localRotation = Quaternion.AngleAxis(-mouseLook.y, Vector3.right); //up and down
+        transform.localRotation = Quaternion.AngleAxis(Mathf.Clamp(-mouseLook.y, -90, 90), Vector3.right); //up and down
         transform.parent.localRotation = Quaternion.AngleAxis(mouseLook.x, transform.parent.up);
 	}
 }

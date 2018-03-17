@@ -74,7 +74,6 @@ public class BestKinematicCharacterController : MonoBehaviour {
     [ReadOnly]
     float gravitySpeed;
     Vector3 boxColliderDimensions;
-    RaycastHit hit;
     Collider[] nearbyColliders;
 
     Vector3 walkingVector;
@@ -83,6 +82,7 @@ public class BestKinematicCharacterController : MonoBehaviour {
     /*
      * Collision handler.
      */
+    public bool moveEvenIfFailedCollision = true;
     public int maxCollisionAttempts = 20;
     float surfaceOffset = .0001f;
     float backstepOffset = .001f;
@@ -91,7 +91,6 @@ public class BestKinematicCharacterController : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-
         isSlopeSliding = false;
         becameGrounded = false;
         isGrounded = false;
@@ -166,7 +165,52 @@ public class BestKinematicCharacterController : MonoBehaviour {
     {
         walkingVector = transform.forward;
         sideWalkingVector = transform.right;
+        Vector3 platformSpeed = Vector3.zero;
+
+        int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(rb.position, 1 + 0.1f, nearbyColliders);
+        //DebugExtension.DebugWireSphere(rb.position, Color.green, 1 + 0.1f);
+
+        if (numbOfNearbyCols > 1) //if its colliding with something check grounding
+        {
+            //Check grounding
+            RaycastHit groundInfo;
+            if (becameGrounded = CheckGrounding(out groundInfo))
+            {
+                platformSpeed = AddSpeedFromPlatform(groundInfo.collider);
+                GetWalkingVector(groundInfo, out walkingVector, out sideWalkingVector);
+                Debug.DrawRay(transform.position, walkingVector * 5, Color.magenta);
+            }
+        }
+        else
+        {
+            becameGrounded = false;
+        }
+
         speed = (walkingVector * input.z + sideWalkingVector * input.x);
+
+        if (isSprinting)
+        {
+            speed *= bodyParts.LegPart.RunningSpeed;
+        }
+        else
+        {
+            speed *= bodyParts.LegPart.MovementSpeed;
+        }
+
+        bool justLanded = becameGrounded && !isGrounded;
+        bool justFell = (!isJumping || !jump) && !becameGrounded && isGrounded;
+        //can check here the landing frame
+        if (justLanded)
+        {
+            Debug.Log("landed");
+        }
+
+        if (justFell)
+        {
+            Debug.Log("fell");
+        }
+
+        isGrounded = becameGrounded;
 
         if (!isGrounded || (isSlopeSliding && !isGrounded))
         {
@@ -175,55 +219,156 @@ public class BestKinematicCharacterController : MonoBehaviour {
         }
 
         Vector3 disp = Vector3.zero;
-        Vector3 platformSpeed = Vector3.zero;
         bodyParts.SetMovementState(speed, isJumping, isSprinting);
-        rb.MovePosition(ContinuosCollisionDetection(disp + (platformSpeed + speed) * Time.deltaTime));
+        Vector3 newPosition = ContinuosCollisionDetection((platformSpeed + speed) * Time.deltaTime);
+        rb.MovePosition(newPosition);
     }
 
     private Vector3 ContinuosCollisionDetection(Vector3 movementSpeed)
     {
-        Debug.Log(movementSpeed);
-        Vector3 originalVelocity = movementSpeed;
         Vector3 origin = rb.position;
-
-        for (int attempts = 0; attempts < maxCollisionAttempts; attempts++)
+        int attempts;
+        for (attempts = 0; attempts < maxCollisionAttempts; attempts++)
         {
             Vector3 originTop = origin;
-            originTop.y += col.height / 2;
+            originTop.y += col.height / 4;
 
             Vector3 originBottom = origin;
-            originBottom.y -= col.height / 2;
+            originBottom.y -= col.height / 4;
 
             Vector3 prevOrigin = origin;
-            Vector3 hitNormal = Vector3.zero;
 
-            float castDistance = speed.magnitude + backstepOffset;
-            Vector3 castDirection = speed.normalized;
+            float castDistance = movementSpeed.magnitude + backstepOffset;
+            Vector3 castDirection = movementSpeed.normalized;
             Vector3 castStartBackOffsetT = originTop - (castDirection * backstepOffset);
             Vector3 castStartBackOffsetB = originBottom - (castDirection * backstepOffset);
 
             RaycastHit hitInfo;
-            DebugExtension.DebugCapsule(castStartBackOffsetT, castStartBackOffsetB, Color.red, col.radius);
-            DebugExtension.DebugCapsule(castStartBackOffsetT + castDirection* castDistance, castStartBackOffsetB + castDirection* castDistance, Color.red, col.radius);
+            DebugExtension.DebugPoint(originTop, Color.red);
+            DebugExtension.DebugPoint(originBottom, Color.red);
+            DebugExtension.DebugWireSphere(castStartBackOffsetT + castDirection, Color.red, col.radius);
+            DebugExtension.DebugWireSphere(castStartBackOffsetB + castDirection, Color.red, col.radius);
+           
             if (Physics.CapsuleCast(castStartBackOffsetT, castStartBackOffsetB, col.radius, castDirection, out hitInfo, castDistance))
             {
+                Debug.DrawRay(origin, castDirection * hitInfo.distance, Color.cyan, 1f);
+
                 origin = CastCenterOnCollision(origin, castDirection, hitInfo.distance);
                 origin += (hitInfo.normal * surfaceOffset);
+
+                float remainingDistance = Mathf.Max(0, castDistance - Vector3.Distance(prevOrigin, origin));
+
+                RaycastHit hit;
+                var p = hitInfo.point + (origin - hitInfo.point).normalized * 0.01f;
+                Physics.Raycast(p, -hitInfo.normal, out hit, 0.1f);
+
+                Debug.DrawRay(p, -hitInfo.normal, Color.blue, 5f);
+
+                RaycastHit hit2;
+                p = hitInfo.point - (origin - hitInfo.point).normalized * 0.01f;
+                Physics.Raycast(p, hitInfo.normal, out hit2, 0.1f);
+
+
+                Debug.DrawRay(p, hitInfo.normal, Color.magenta, 5f);
+
+                Vector3 remainingSpeed = castDirection * remainingDistance;
+                movementSpeed = remainingSpeed - Vector3.Project(remainingSpeed, hit.normal);
+                if (!hitInfo.collider.name.Equals("Plane"))
+                {
+                    Debug.Log(hit.normal + " -- " + hit2.normal);
+                    Debug.DrawRay(hitInfo.point, hit.normal, Color.cyan, 5f);
+                    Debug.DrawRay(hitInfo.point, hit2.normal, Color.yellow, 5f);
+                    DebugExtension.DebugWireSphere(hitInfo.point, 0.02f, 10f);
+                    //DebugExtension.DebugWireSphere(hitInfo.point + hit.normal, 0.05f, 10f);
+                    //Debug.DrawRay(origin, movementSpeed, Color.yellow, 5f);
+                }
+
+                if (movementSpeed.magnitude <= minVelocityBreak) break;
             }
             else
             {
-                origin += speed;
+                origin += movementSpeed;
                 break;
             }
 
         }
 
-        return origin;
+
+        bool failedCollision = attempts >= maxCollisionAttempts;
+        if (failedCollision) Debug.LogWarning("Failed collision handling");
+
+        if (!moveEvenIfFailedCollision && failedCollision)
+        {
+            Debug.LogWarning("Aborting movement");
+            return rb.position;
+        }
+        else
+        {
+            return origin;
+        }
+    }
+
+    /**
+    * Check if Character is grounded by spherecasting the ground.
+    */
+    private bool CheckGrounding(out RaycastHit hitInfo)
+    {
+        bool wasGrounded = isGrounded;
+        isSlopeSliding = false;
+        //DebugExtension.DebugWireSphere(transform.position + -transform.up * (col.height / 4 + speed.magnitude), Color.blue, 0.5f, 10f);
+        if (Physics.SphereCast(transform.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + speed.magnitude))
+        {
+            //Only walk on non-steep ground
+            //Debug.Log(Vector3.Dot(hitInfo.normal, Vector3.up) + ">>" + groundingAngle);
+            if (Vector3.Dot(hitInfo.normal, Vector3.up) > groundingAngle)
+            {
+                currentJumpNumber = 0;
+                isJumping = false;
+                return true;
+            }
+            else
+            {
+                isSlopeSliding = true;
+                return wasGrounded;
+            }
+
+        }
+        return false;
+    }
+
+    private void GetWalkingVector(RaycastHit groundInfo, out Vector3 walkingDir, out Vector3 sideDir)
+    {
+        Vector3 n = groundInfo.normal.normalized;
+        sideDir = Vector3.Cross(n, transform.forward.normalized);
+        walkingDir = Vector3.Cross(sideDir, n);
     }
 
     private Vector3 CastCenterOnCollision(Vector3 origin, Vector3 directionCast, float hitInfoDistance)
     {
         return origin + (directionCast.normalized * hitInfoDistance);
+    }
+
+    /**
+ * When the character gets on top of a platform it should add the platform speed to its own speed.
+ */
+    private Vector3 AddSpeedFromPlatform(Collider col)
+    {
+        Vector3 platformSpeed = Vector3.zero;
+        MovePlatform mover = col.gameObject.GetComponent<MovePlatform>();
+        if (mover != null)
+        {
+            platformSpeed = mover.currDir;
+        }
+        else
+        {
+            Rigidbody colRb = col.gameObject.GetComponent<Rigidbody>();
+            if (colRb != null)
+            {
+                platformSpeed = colRb.velocity;
+            }
+        }
+
+        return platformSpeed;
     }
 
     private void Crouch(bool crouch)

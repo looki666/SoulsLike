@@ -68,6 +68,7 @@ public class TestCharacterController : MonoBehaviour
             RaycastHit hitInfo;
             if (Physics.SphereCast(castStartBackOffset, radius, castDirection, out hitInfo, castDistance))
             {
+                //DebugExtension.DebugWireSphere(origin + castDirection * hitInfo.distance, radius, 1f);
                 origin = CastCenterOnCollision(castStartBackOffset, castDirection, hitInfo.distance);
                 origin += (hitInfo.normal * surfaceOffset);
 
@@ -86,6 +87,9 @@ public class TestCharacterController : MonoBehaviour
                 float remainingDistance = Mathf.Max(0f, targetVelocity.magnitude - Vector3.Distance(prevOrigin, origin));
                 Vector3 remainingVelocity = targetVelocity.normalized * remainingDistance;
                 targetVelocity = Vector3.ProjectOnPlane(remainingVelocity, hitNormal);
+
+                Debug.DrawRay(origin, hitInfo.normal, Color.cyan, 3f);
+                Debug.DrawRay(origin, targetVelocity, Color.yellow, 3f);
 
                 if (targetVelocity.magnitude <= minVelocityBreak) break;
 
