@@ -39,9 +39,6 @@ public class Basic : MonoBehaviour, IFightStyleSolver
 
     public void ReceiveInput(CombatInput input)
     {
-        Debug.Log(input.combatType);
-        Debug.Log(isAttacking);
-        Debug.Log(input);
         if (this.input == null)
         {
             this.input = input;
@@ -57,7 +54,6 @@ public class Basic : MonoBehaviour, IFightStyleSolver
     {
         if (input != null)
         {
-            Debug.Log("attack");
             animator.SetTrigger("attack");
             input = null;
         }

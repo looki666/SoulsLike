@@ -30,7 +30,7 @@ public class CharacterBodyCostumization : MonoBehaviour {
     
 
     // Use this for initialization
-    void Start () {
+    void Awake () {
         armPart = GetComponentInChildren<ArmPart>();
         torsoPart = GetComponentInChildren<TorsoPart>();
         legPart = GetComponentInChildren<LegPart>();

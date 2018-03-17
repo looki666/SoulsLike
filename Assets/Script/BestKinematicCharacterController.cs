@@ -102,8 +102,8 @@ public class BestKinematicCharacterController : MonoBehaviour {
         gravitySpeed = GRAVITY * fallSpeed;
         boxColliderDimensions = new Vector3(2 / 3f, 1f, 2 / 3f);
 
-        animator = GetComponent<Animator>();
         bodyParts = GetComponent<CharacterBodyCostumization>();
+        animator = bodyParts.ArmsPart.animator;
         rb = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
 
@@ -195,6 +195,22 @@ public class BestKinematicCharacterController : MonoBehaviour {
         else
         {
             speed *= bodyParts.LegPart.MovementSpeed;
+        }
+
+        if(speed.magnitude > 0)
+        {
+            if (isSprinting)
+            {
+                animator.SetBool("Sprinting", true);
+            } else
+            {
+                animator.SetBool("Walking", true);
+                animator.SetBool("Sprinting", false);
+            }
+        } else
+        {
+            animator.SetBool("Walking", false);
+            animator.SetBool("Sprinting", false);
         }
 
         bool justLanded = becameGrounded && !isGrounded;

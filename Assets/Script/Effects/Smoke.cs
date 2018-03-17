@@ -46,7 +46,7 @@ public class Smoke : MonoBehaviour {
         {
             tempVec = GetSmokeVec();
             directions[i] = tempVec;
-            positions[i] = transform.localPosition;
+            positions[i] = transform.position;
             line.SetPosition(i, positions[i]);
         }
     }
@@ -67,7 +67,7 @@ public class Smoke : MonoBehaviour {
                 line.positionCount = currentNumberOfPoints;
                 tempVec = GetSmokeVec();
                 directions[0] = tempVec;
-                positions[0] = transform.localPosition;
+                positions[0] = transform.position;
                 line.SetPosition(0, positions[0]);
             }
 
@@ -95,8 +95,8 @@ public class Smoke : MonoBehaviour {
 
             line.SetPosition(i, positions[i]);
         }
-        positions[0] = transform.localPosition; // 0th point is a special case, always follows the transform directly.
-        line.SetPosition(0, transform.localPosition);
+        positions[0] = transform.position; // 0th point is a special case, always follows the transform directly.
+        line.SetPosition(0, transform.position);
 
         // If we're at the maximum number of points, tweak the offset so that the last line segment is "invisible" (i.e. off the top of the texture) when it disappears.
         // Makes the change less jarring and ensures the texture doesn't jump.
