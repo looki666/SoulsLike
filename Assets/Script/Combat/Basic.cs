@@ -54,8 +54,18 @@ public class Basic : MonoBehaviour, IFightStyleSolver
     {
         if (input != null)
         {
-            animator.SetTrigger("attack");
-            input = null;
+            if (ECombatInputType.WEAK_ATTACK.Equals(input.combatType))
+            {
+                animator.SetTrigger("attack");
+            } else if (ECombatInputType.STRONG_ATTACK.Equals(input.combatType))
+            {
+                animator.SetTrigger("strongAttack");
+            }else if (ECombatInputType.BOTH_ATTACKS.Equals(input.combatType))
+            {
+                animator.SetTrigger("bothAttack");
+            }
+
+                input = null;
         }
     }
 }

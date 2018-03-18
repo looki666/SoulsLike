@@ -295,7 +295,7 @@ public class BestKinematicCharacterController : MonoBehaviour {
                     Debug.DrawRay(hitInfo.point, hit.normal, Color.cyan, 5f);
                     Debug.DrawRay(hitInfo.point, hit2.normal, Color.yellow, 5f);
                     DebugExtension.DebugWireSphere(hitInfo.point, 0.02f, 10f);
-                    //DebugExtension.DebugWireSphere(hitInfo.point + hit.normal, 0.05f, 10f);
+                    DebugExtension.DebugWireSphere(hitInfo.collider.ClosestPoint(hitInfo.point), Color.red, 0.02f, 10f);
                     //Debug.DrawRay(origin, movementSpeed, Color.yellow, 5f);
                 }
 
