@@ -12,6 +12,8 @@ public class BestKinematicCharacterController : MonoBehaviour {
     Rigidbody rb;
     CapsuleCollider col;
 
+    public bool dePenetrate = false;
+
     /**
      * Variables that handle falling movement.
      */
@@ -234,15 +236,36 @@ public class BestKinematicCharacterController : MonoBehaviour {
             speed.y -= gravitySpeed;
         }
 
+        if (jump)
+        {
+            jump = false;
+            isJumping = true;
+            becameGrounded = false;
+            isGrounded = false;
+        }
+
+        if (isJumping)
+        {
+            speed.y += JumpSpeed;
+            JumpSpeed = Mathf.Max(0, JumpSpeed - Time.deltaTime * Time.deltaTime * 2000);
+        }
+
         Vector3 disp = Vector3.zero;
         bodyParts.SetMovementState(speed, isJumping, isSprinting);
         Vector3 newPosition = ContinuosCollisionDetection((platformSpeed + speed) * Time.deltaTime);
-        rb.MovePosition(newPosition);
+
+        if (dePenetrate)
+        {
+            disp = DePenetrateCollisions(ref newPosition, numbOfNearbyCols);
+        }
+
+        rb.MovePosition(rb.position + newPosition + disp);
     }
 
     private Vector3 ContinuosCollisionDetection(Vector3 movementSpeed)
     {
         Vector3 origin = rb.position;
+        Vector3 finalSpeed = Vector3.zero;
         int attempts;
         for (attempts = 0; attempts < maxCollisionAttempts; attempts++)
         {
@@ -260,13 +283,11 @@ public class BestKinematicCharacterController : MonoBehaviour {
             Vector3 castStartBackOffsetB = originBottom - (castDirection * backstepOffset);
 
             RaycastHit hitInfo;
-            DebugExtension.DebugPoint(originTop, Color.red);
-            DebugExtension.DebugPoint(originBottom, Color.red);
-            DebugExtension.DebugWireSphere(castStartBackOffsetT + castDirection, Color.red, col.radius);
-            DebugExtension.DebugWireSphere(castStartBackOffsetB + castDirection, Color.red, col.radius);
-           
+
             if (Physics.CapsuleCast(castStartBackOffsetT, castStartBackOffsetB, col.radius, castDirection, out hitInfo, castDistance))
             {
+                Debug.DrawRay(castStartBackOffsetT, castDirection, Color.red, 5f);
+
                 Debug.DrawRay(origin, castDirection * hitInfo.distance, Color.cyan, 1f);
 
                 origin = CastCenterOnCollision(origin, castDirection, hitInfo.distance);
@@ -275,34 +296,24 @@ public class BestKinematicCharacterController : MonoBehaviour {
                 float remainingDistance = Mathf.Max(0, castDistance - Vector3.Distance(prevOrigin, origin));
 
                 RaycastHit hit;
-                var p = hitInfo.point + (origin - hitInfo.point).normalized * 0.01f;
+                var p = hitInfo.point;
                 Physics.Raycast(p, -hitInfo.normal, out hit, 0.1f);
 
-                Debug.DrawRay(p, -hitInfo.normal, Color.blue, 5f);
-
-                RaycastHit hit2;
-                p = hitInfo.point - (origin - hitInfo.point).normalized * 0.01f;
-                Physics.Raycast(p, hitInfo.normal, out hit2, 0.1f);
-
-
-                Debug.DrawRay(p, hitInfo.normal, Color.magenta, 5f);
-
                 Vector3 remainingSpeed = castDirection * remainingDistance;
-                movementSpeed = remainingSpeed - Vector3.Project(remainingSpeed, hit.normal);
-                if (!hitInfo.collider.name.Equals("Plane"))
-                {
-                    Debug.Log(hit.normal + " -- " + hit2.normal);
-                    Debug.DrawRay(hitInfo.point, hit.normal, Color.cyan, 5f);
-                    Debug.DrawRay(hitInfo.point, hit2.normal, Color.yellow, 5f);
-                    DebugExtension.DebugWireSphere(hitInfo.point, 0.02f, 10f);
-                    DebugExtension.DebugWireSphere(hitInfo.collider.ClosestPoint(hitInfo.point), Color.red, 0.02f, 10f);
-                    //Debug.DrawRay(origin, movementSpeed, Color.yellow, 5f);
-                }
+                //Debug.DrawRay(origin, remainingSpeed * 2, Color.yellow, 5f);
+                Debug.Log(remainingSpeed +" - "+ Vector3.Project(remainingSpeed, hitInfo.normal));
+                movementSpeed = remainingSpeed - Vector3.Project(remainingSpeed, hitInfo.normal);
+                Debug.DrawRay(hitInfo.point, movementSpeed, Color.magenta, 5f);
+
+                Debug.DrawRay(hitInfo.point, hitInfo.normal, Color.cyan, 5f);
+                DebugExtension.DebugWireSphere(hitInfo.point, 0.005f, 5f);
 
                 if (movementSpeed.magnitude <= minVelocityBreak) break;
             }
             else
             {
+                Debug.DrawRay(castStartBackOffsetT, castDirection, Color.white, 5f);
+                finalSpeed +=movementSpeed;
                 origin += movementSpeed;
                 break;
             }
@@ -316,13 +327,58 @@ public class BestKinematicCharacterController : MonoBehaviour {
         if (!moveEvenIfFailedCollision && failedCollision)
         {
             Debug.LogWarning("Aborting movement");
-            return rb.position;
+            return Vector3.zero;
         }
         else
         {
-            return origin;
+            return finalSpeed;
         }
     }
+
+
+    private Vector3 DePenetrateCollisions(ref Vector3 speed, int numbOfNearbyCols)
+    {
+        Vector3 displacement = new Vector3();
+        Vector3 dir = new Vector3();
+        float dist = 0;
+
+        for (int i = 0; i < numbOfNearbyCols; i++)
+        {
+            if (nearbyColliders[i] == col)
+            {
+                continue;
+            }
+
+            if (Physics.ComputePenetration(col, transform.position, transform.rotation,
+                nearbyColliders[i],
+                nearbyColliders[i].transform.position,
+                nearbyColliders[i].transform.rotation,
+                out dir, out dist))
+            {
+                if (Vector3.Dot(dir, Vector3.up) < groundingAngle)
+                {
+                    dir.y = 0f;
+                    dir.Normalize();
+                }
+                // Get outta that collider!
+                displacement += dir * dist;
+
+                // Crop down the velocity component which is in the direction of penetration
+                if (Vector3.Dot(speed, dir) < 0)
+                {
+                    speed -= Vector3.Project(speed, dir);
+                }
+            }
+        }
+
+        for (var i = 0; i < nearbyColliders.Length; i++)
+        {
+            nearbyColliders[i] = null;
+        }
+
+        return displacement;
+    }
+
 
     /**
     * Check if Character is grounded by spherecasting the ground.
@@ -331,11 +387,9 @@ public class BestKinematicCharacterController : MonoBehaviour {
     {
         bool wasGrounded = isGrounded;
         isSlopeSliding = false;
-        //DebugExtension.DebugWireSphere(transform.position + -transform.up * (col.height / 4 + speed.magnitude), Color.blue, 0.5f, 10f);
         if (Physics.SphereCast(transform.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + speed.magnitude))
         {
-            //Only walk on non-steep ground
-            //Debug.Log(Vector3.Dot(hitInfo.normal, Vector3.up) + ">>" + groundingAngle);
+
             if (Vector3.Dot(hitInfo.normal, Vector3.up) > groundingAngle)
             {
                 currentJumpNumber = 0;

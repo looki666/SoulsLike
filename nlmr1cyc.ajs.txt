@@ -1,0 +1,32 @@
+﻿Tweaks to kCC and shaders
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'origin/master'.
+#
+# Changes to be committed:
+#	modified:   .vs/SoulsLike/v15/Browse.VC.db
+#	modified:   .vs/SoulsLike/v15/Server/sqlite3/storage.ide
+#	modified:   Assets/Animator/BasicArms.controller
+#	new file:   Assets/Materials/68310538-vector-monochrome-seamless-pattern-black-white-chaotic-spots-abstract-endless-texture-of-animal-skin.jpg
+#	new file:   Assets/Materials/68310538-vector-monochrome-seamless-pattern-black-white-chaotic-spots-abstract-endless-texture-of-animal-skin.jpg.meta
+#	new file:   Assets/Materials/Emitting 1.mat
+#	new file:   Assets/Materials/Emitting 1.mat.meta
+#	new file:   Assets/Materials/Emitting 2.mat
+#	new file:   Assets/Materials/Emitting 2.mat.meta
+#	new file:   Assets/Materials/Emitting.mat
+#	new file:   Assets/Materials/Emitting.mat.meta
+#	new file:   Assets/Materials/distortion.png
+#	new file:   Assets/Materials/distortion.png.meta
+#	new file:   Assets/Materials/u2uEOoE.png
+#	new file:   Assets/Materials/u2uEOoE.png.meta
+#	new file:   Assets/Materials/wj1aLsS.png
+#	new file:   Assets/Materials/wj1aLsS.png.meta
+#	modified:   Assets/Scene/learning.unity
+#	modified:   Assets/Script/BestKinematicCharacterController.cs
+#	new file:   Assets/Shader/MovingTransparency.shader
+#	new file:   Assets/Shader/MovingTransparency.shader.meta
+#	new file:   Assets/Shader/TransparentColor.shader
+#	new file:   Assets/Shader/TransparentColor.shader.meta
+#
+
