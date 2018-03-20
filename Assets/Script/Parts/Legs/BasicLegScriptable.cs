@@ -6,6 +6,7 @@ using UnityEngine;
 public class BasicLegScriptable : ScriptableObject {
 
     public float movementSpeed;
+    public float flashStepSpeed;
     public float runningSpeed;
     public float jumpHeight;
     public int jumpNumber;

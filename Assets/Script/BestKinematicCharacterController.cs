@@ -22,9 +22,20 @@ public class BestKinematicCharacterController : MonoBehaviour {
     public float fallSpeed = 1.5f;
     public float fallSpeedIncrementer = 0.1f;
 
+    public float radiusOfLock = 3f;
+
+    [SerializeField]
+    [ReadOnly]
+    private bool isLocked;
+    private bool pressedLocking;
+
     [SerializeField]
     [ReadOnly]
     private bool isSlopeSliding;
+
+    [SerializeField]
+    [ReadOnly]
+    private bool isDodging;
 
     private bool becameGrounded;
     [SerializeField]
@@ -90,6 +101,10 @@ public class BestKinematicCharacterController : MonoBehaviour {
     float backstepOffset = .001f;
     float minVelocityBreak = .001f;
 
+    Collider[] nearbyEnemies;
+
+    Transform closestEnemy;
+
     // Use this for initialization
     void Start()
     {
@@ -99,6 +114,9 @@ public class BestKinematicCharacterController : MonoBehaviour {
         isJumping = false;
         isSprinting = false;
         isCrouching = false;
+        isDodging = false;
+        isLocked = false;
+        pressedLocking = false;
 
         jump = false;
         gravitySpeed = GRAVITY * fallSpeed;
@@ -109,15 +127,34 @@ public class BestKinematicCharacterController : MonoBehaviour {
         rb = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
 
+        closestEnemy = null;
         nearbyColliders = new Collider[16];
+        nearbyEnemies = new Collider[5];
     }
 
 
     void Update()
     {
+        if(Input.GetKeyDown(KeyCode.Q))
+        {
+            animator.SetBool("Blocking", true);
+        } else if (Input.GetKeyUp(KeyCode.Q))
+        {
+            animator.SetBool("Blocking", false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            pressedLocking = true;
+        }
 
         input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
 
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            isDodging = true;
+        }
+       
         if (Input.GetKeyDown(KeyCode.Space) && (isGrounded || (currentJumpNumber < bodyParts.LegPart.JumpNumber)))
         {
             jump = true;
@@ -170,7 +207,6 @@ public class BestKinematicCharacterController : MonoBehaviour {
         Vector3 platformSpeed = Vector3.zero;
 
         int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(rb.position, 1 + 0.1f, nearbyColliders);
-        //DebugExtension.DebugWireSphere(rb.position, Color.green, 1 + 0.1f);
 
         if (numbOfNearbyCols > 1) //if its colliding with something check grounding
         {
@@ -188,9 +224,37 @@ public class BestKinematicCharacterController : MonoBehaviour {
             becameGrounded = false;
         }
 
+        if (pressedLocking)
+        {
+            closestEnemy = null;
+            pressedLocking = false;
+            isLocked = false;
+            int numNearEnemies = Physics.OverlapSphereNonAlloc(rb.position, radiusOfLock, nearbyEnemies, 1 << 9);
+            float closestDistance = radiusOfLock;
+            for (int i = 0; i < numNearEnemies; i++)
+            {
+                Vector3 targetDir = nearbyEnemies[i].transform.position - rb.position;
+                if (Vector3.Angle(targetDir, transform.forward) < 45f)
+                {
+                    float distance = Vector3.Distance(nearbyEnemies[i].transform.position, rb.position);
+                    if (distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestEnemy = nearbyEnemies[i].transform;
+                        isLocked = true;
+                    }
+                }
+            }
+        }
+
         speed = (walkingVector * input.z + sideWalkingVector * input.x);
 
-        if (isSprinting)
+        if (isDodging)
+        {
+            speed *= bodyParts.LegPart.FlashStepSpeed;
+            isDodging = false;
+        }
+        else if (isSprinting)
         {
             speed *= bodyParts.LegPart.RunningSpeed;
         }
@@ -220,12 +284,12 @@ public class BestKinematicCharacterController : MonoBehaviour {
         //can check here the landing frame
         if (justLanded)
         {
-            Debug.Log("landed");
+           // Debug.Log("landed");
         }
 
         if (justFell)
         {
-            Debug.Log("fell");
+           // Debug.Log("fell");
         }
 
         isGrounded = becameGrounded;
@@ -301,7 +365,7 @@ public class BestKinematicCharacterController : MonoBehaviour {
 
                 Vector3 remainingSpeed = castDirection * remainingDistance;
                 //Debug.DrawRay(origin, remainingSpeed * 2, Color.yellow, 5f);
-                Debug.Log(remainingSpeed +" - "+ Vector3.Project(remainingSpeed, hitInfo.normal));
+                //Debug.Log(remainingSpeed +" - "+ Vector3.Project(remainingSpeed, hitInfo.normal));
                 movementSpeed = remainingSpeed - Vector3.Project(remainingSpeed, hitInfo.normal);
                 Debug.DrawRay(hitInfo.point, movementSpeed, Color.magenta, 5f);
 
