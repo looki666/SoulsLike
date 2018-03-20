@@ -13,7 +13,7 @@ public class BasicAnimatorController : StateMachineBehaviour {
             fightSolver = animator.GetComponent<IFightStyleSolver>();
         }
 
-        if(!stateInfo.IsName("Idle"))
+        if(stateInfo.IsName("Punch") || stateInfo.IsName("StrongPunch") || stateInfo.IsName("2Handed"))
         {
             fightSolver.IsAttacking = true;
         }
@@ -31,7 +31,7 @@ public class BasicAnimatorController : StateMachineBehaviour {
             fightSolver = animator.GetComponent<IFightStyleSolver>();
         }
 
-        if (!stateInfo.IsName("Idle"))
+        if (stateInfo.IsName("Punch") || stateInfo.IsName("StrongPunch") || stateInfo.IsName("2Handed"))
         {
             fightSolver.IsAttacking = false;
             fightSolver.HandleInput();
