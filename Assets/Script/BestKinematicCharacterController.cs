@@ -360,30 +360,25 @@ public class BestKinematicCharacterController : MonoBehaviour
         Color startColor = Color.blue;
         for (attempts = 0; attempts < maxCollisionAttempts; attempts++)
         {
-            Vector3 originTop = origin;
-            float offSetCapsule = col.height / 2 - col.radius;
-            originTop.y += offSetCapsule;
-
-            Vector3 originBottom = origin;
-            originBottom.y -= offSetCapsule;
-
             Vector3 prevOrigin = origin;
-
             float castDistance = movementSpeed.magnitude + backstepOffset;
             Vector3 castDirection = movementSpeed.normalized;
-            Vector3 castStartBackOffsetT = originTop - (castDirection * backstepOffset);
-            Vector3 castStartBackOffsetB = originBottom - (castDirection * backstepOffset);
+            Vector3 castStartBackOffset = origin - (castDirection * backstepOffset);
+
+            float offSetCapsule = col.height / 2 - col.radius;
+            Vector3 castStartBackOffsetTop = castStartBackOffset + transform.up * offSetCapsule;
+            Vector3 castStartBackOffsetBot = castStartBackOffset - transform.up * offSetCapsule;
 
             if (DEBUG)
             {
                 startColor.r += 0.2f;
-                DebugExtension.DebugArrow(castStartBackOffsetT, castDirection * castDistance, startColor, 2f);
-                DebugExtension.DebugArrow(castStartBackOffsetB, castDirection * castDistance, startColor, 2f);
+                DebugExtension.DebugArrow(castStartBackOffsetTop, castDirection * castDistance, startColor, 2f);
+                DebugExtension.DebugArrow(castStartBackOffsetBot, castDirection * castDistance, startColor, 2f);
             }
             RaycastHit hitInfo;
-           if (Physics.CapsuleCast(castStartBackOffsetT, castStartBackOffsetB, col.radius, castDirection, out hitInfo, castDistance, ~(1<<8)))
+           if (Physics.CapsuleCast(castStartBackOffsetTop, castStartBackOffsetBot, col.radius, castDirection, out hitInfo, castDistance, ~(1<<8)))
             {
-                origin = CastCenterOnCollision(origin, castDirection, hitInfo.distance);
+                origin = CastCenterOnCollision(castStartBackOffset, castDirection, hitInfo.distance);
                 origin += (hitInfo.normal * surfaceOffset);
 
                 if (DEBUG)
@@ -488,7 +483,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         bool wasGrounded = isGrounded;
         isSlopeSliding = false;
 
-        if (Physics.SphereCast(rb.position, 0.5f, -transform.up, out hitInfo, col.height / 4))
+        if (Physics.SphereCast(rb.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + 0.01f))
         {
             if (Vector3.Dot(hitInfo.normal, Vector3.up) > groundingAngle)
             {

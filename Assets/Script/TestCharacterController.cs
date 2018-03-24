@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
  
-[RequireComponent(typeof(SphereCollider))]
+[RequireComponent(typeof(CapsuleCollider))]
 public class TestCharacterController : MonoBehaviour
 {
     public float mouseSensitivity = 10;
@@ -18,12 +18,13 @@ public class TestCharacterController : MonoBehaviour
 
     float radius { get { return sphereCollider.radius; } }
 
-    SphereCollider sphereCollider;
+    CapsuleCollider sphereCollider;
+    Rigidbody rb;
 
     void Awake()
     {
-        sphereCollider = GetComponent<SphereCollider>();
-        sphereCollider.enabled = false;
+        sphereCollider = GetComponent<CapsuleCollider>();
+        rb = GetComponent<Rigidbody>();
     }
 
     void FixedUpdate()
@@ -40,18 +41,12 @@ public class TestCharacterController : MonoBehaviour
     void Move()
     {
         Vector3 movement = GetMoveDirection() * speed;
-        movement += ((Vector3.down * gravity) * Time.deltaTime);
-        velocity += movement;
 
-        Debug.Log(velocity);
-        velocity = MoveCollision(velocity * Time.deltaTime);
-
-        velocity /= Time.deltaTime;
+        MoveCollision(movement * Time.deltaTime);
     }
 
-    Vector3 MoveCollision(Vector3 targetVelocity)
+    void MoveCollision(Vector3 targetVelocity)
     {
-        Vector3 originalVelocity = targetVelocity;
         Vector3 origin = transform.position;
 
         int attempts = 0;
@@ -59,31 +54,24 @@ public class TestCharacterController : MonoBehaviour
         {
             Vector3 prevOrigin = origin;
             Vector3 hitNormal = Vector3.zero;
-            bool hasHit = false;
 
             float castDistance = targetVelocity.magnitude + backstepOffset;
             Vector3 castDirection = targetVelocity.normalized;
             Vector3 castStartBackOffset = origin - (castDirection * backstepOffset);
 
+            float offSetCapsule = sphereCollider.height / 2 - sphereCollider.radius;
+            Vector3 castStartBackOffsetTop = castStartBackOffset + transform.up * offSetCapsule;
+            Vector3 castStartBackOffsetBot = castStartBackOffset - transform.up * offSetCapsule;
+
             RaycastHit hitInfo;
-            if (Physics.SphereCast(castStartBackOffset, radius, castDirection, out hitInfo, castDistance))
+            if (Physics.CapsuleCast(castStartBackOffsetTop, castStartBackOffsetBot, radius, castDirection, out hitInfo, castDistance))
             {
                 //DebugExtension.DebugWireSphere(origin + castDirection * hitInfo.distance, radius, 1f);
                 origin = CastCenterOnCollision(castStartBackOffset, castDirection, hitInfo.distance);
                 origin += (hitInfo.normal * surfaceOffset);
 
                 hitNormal = hitInfo.normal;
-                hasHit = true;
-            }
-            else
-            {
-                origin += targetVelocity;
-            }
 
-            if (hasHit)
-            {
-                //This might not be a accurate conversion, but is fine for testing.
-                //There might be an issue with this since when I move almost parallel against a wall, I seem to slow down a lot as if getting stuck.
                 float remainingDistance = Mathf.Max(0f, targetVelocity.magnitude - Vector3.Distance(prevOrigin, origin));
                 Vector3 remainingVelocity = targetVelocity.normalized * remainingDistance;
                 targetVelocity = Vector3.ProjectOnPlane(remainingVelocity, hitNormal);
@@ -92,12 +80,13 @@ public class TestCharacterController : MonoBehaviour
                 Debug.DrawRay(origin, targetVelocity, Color.yellow, 3f);
 
                 if (targetVelocity.magnitude <= minVelocityBreak) break;
-
             }
             else
             {
+                origin += targetVelocity;
                 break;
             }
+
         }
 
         bool failedCollision = attempts >= maxCollisionAttemps;
@@ -106,12 +95,10 @@ public class TestCharacterController : MonoBehaviour
         if (!moveEvenIfFailedCollision && failedCollision)
         {
             Debug.LogWarning("Aborting movement");
-            return Vector3.zero;
         }
         else
         {
-            transform.position = origin;
-            return targetVelocity.normalized * MagnitudeInDirection(targetVelocity, originalVelocity);
+            rb.MovePosition(origin);
         }
     }
 
