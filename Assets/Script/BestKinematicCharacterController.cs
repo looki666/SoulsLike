@@ -183,11 +183,6 @@ public class BestKinematicCharacterController : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown("escape"))
-        {
-            Cursor.lockState = CursorLockMode.None;
-        }
-
         //Crouching input.
         if (canCrouch)
         {
@@ -205,7 +200,9 @@ public class BestKinematicCharacterController : MonoBehaviour
         Crouch(isCrouching);
     }
 
-
+    /*
+     * Physics Update.
+     */
     private void FixedUpdate()
     {
         walkingVector = transform.forward;
@@ -216,8 +213,8 @@ public class BestKinematicCharacterController : MonoBehaviour
         RaycastHit groundInfo;
         if (becameGrounded = CheckGrounding(out groundInfo))
         {
-            //platformSpeed = AddSpeedFromPlatform(groundInfo.collider);
-            //GetWalkingVector(groundInfo, out walkingVector, out sideWalkingVector);
+            platformSpeed = AddSpeedFromPlatform(groundInfo.collider);
+            GetWalkingVector(groundInfo, out walkingVector, out sideWalkingVector);
             if (DEBUG)
             {
                 Debug.DrawRay(transform.position, walkingVector * 5, Color.magenta);
@@ -230,13 +227,11 @@ public class BestKinematicCharacterController : MonoBehaviour
         //Can check here the landing frame.
         if (justLanded)
         {
-            // Debug.Log("landed");
         }
 
         //Can check here the falling frame.
         if (justFell)
         {
-            // Debug.Log("fell");
         }
 
         isGrounded = becameGrounded;
@@ -318,54 +313,100 @@ public class BestKinematicCharacterController : MonoBehaviour
         }
 
         bodyParts.SetMovementState(speed, isJumping, isSprinting);
-        rb.MovePosition(ContinuosCollisionDetection(speed * Time.deltaTime));
+        ContinuosCollisionDetection((platformSpeed + speed) * Time.deltaTime);
+    }
+
+    /**
+     * Get forward and sideways vector when standing on a slope.
+     */
+    private void GetWalkingVector(RaycastHit groundInfo, out Vector3 walkingDir, out Vector3 sideDir)
+    {
+        Vector3 n = groundInfo.normal.normalized;
+        sideDir = Vector3.Cross(n, transform.forward.normalized);
+        walkingDir = Vector3.Cross(sideDir, n);
+    }
+
+    /**
+     * When the character gets on top of a platform it should add the platform speed to its own speed.
+     */
+    private Vector3 AddSpeedFromPlatform(Collider col)
+    {
+        Vector3 platformSpeed = Vector3.zero;
+        MovePlatform mover = col.gameObject.GetComponent<MovePlatform>();
+        if (mover != null)
+        {
+            platformSpeed = mover.currDir;
+        }
+        else
+        {
+            Rigidbody colRb = col.gameObject.GetComponent<Rigidbody>();
+            if (colRb != null)
+            {
+                platformSpeed = colRb.velocity;
+            }
+        }
+
+        return platformSpeed;
     }
 
     /*
      * Verify if character would penetrate and try to move just enough to not collide.
      */
-    private Vector3 ContinuosCollisionDetection(Vector3 movementSpeed)
+    private void ContinuosCollisionDetection(Vector3 movementSpeed)
     {
         Vector3 originalVelocity = movementSpeed;
         Vector3 origin = rb.position;
         int attempts;
+        Color startColor = Color.blue;
         for (attempts = 0; attempts < maxCollisionAttempts; attempts++)
         {
             Vector3 originTop = origin;
-            originTop.y += col.height / 2;
+            float offSetCapsule = col.height / 2 - col.radius;
+            originTop.y += offSetCapsule;
 
             Vector3 originBottom = origin;
-            originBottom.y -= col.height / 2;
+            originBottom.y -= offSetCapsule;
 
             Vector3 prevOrigin = origin;
-            Vector3 hitNormal = Vector3.zero;
 
-            float castDistance = speed.magnitude + backstepOffset;
-            Vector3 castDirection = speed.normalized;
+            float castDistance = movementSpeed.magnitude + backstepOffset;
+            Vector3 castDirection = movementSpeed.normalized;
             Vector3 castStartBackOffsetT = originTop - (castDirection * backstepOffset);
             Vector3 castStartBackOffsetB = originBottom - (castDirection * backstepOffset);
 
-            RaycastHit hitInfo;
-           if (Physics.CapsuleCast(castStartBackOffsetT, castStartBackOffsetB, col.radius, castDirection, out hitInfo, castDistance))
+            if (DEBUG)
             {
-                Debug.DrawLine(rb.position, CastCenterOnCollision(origin, castDirection, hitInfo.distance), Color.red, 3f);
-                Debug.Log(CastCenterOnCollision(origin, castDirection, hitInfo.distance));
+                startColor.r += 0.2f;
+                DebugExtension.DebugArrow(castStartBackOffsetT, castDirection * castDistance, startColor, 2f);
+                DebugExtension.DebugArrow(castStartBackOffsetB, castDirection * castDistance, startColor, 2f);
+            }
+            RaycastHit hitInfo;
+           if (Physics.CapsuleCast(castStartBackOffsetT, castStartBackOffsetB, col.radius, castDirection, out hitInfo, castDistance, ~(1<<8)))
+            {
                 origin = CastCenterOnCollision(origin, castDirection, hitInfo.distance);
                 origin += (hitInfo.normal * surfaceOffset);
 
-                float remainingDistance = Mathf.Max(0, castDistance - Vector3.Distance(prevOrigin, origin));
+                if (DEBUG)
+                {
+                    Debug.DrawRay(hitInfo.point, hitInfo.normal, Color.cyan, 2f);
+                    DebugExtension.DebugArrow(origin, movementSpeed, Color.black, 2f);
+                }
 
-                RaycastHit hit;
-                var p = hitInfo.point;
-                Physics.Raycast(p, -hitInfo.normal, out hit, 0.1f);
+                float remainingDistance = Mathf.Max(0, castDistance - Vector3.Distance(prevOrigin, origin));
 
                 Vector3 remainingSpeed = castDirection * remainingDistance;
                 movementSpeed = remainingSpeed - Vector3.Project(remainingSpeed, hitInfo.normal);
+
+                if (DEBUG)
+                {
+                    DebugExtension.DebugArrow(origin, movementSpeed, Color.white, 2f);
+                }
 
                 if (movementSpeed.magnitude <= minVelocityBreak) break;
             }
             else
             {
+
                 origin += movementSpeed;
                 break;
             }
@@ -377,12 +418,19 @@ public class BestKinematicCharacterController : MonoBehaviour
         if (!moveEvenIfFailedCollision && failedCollision)
         {
             Debug.LogWarning("Aborting movement");
-            return Vector3.zero;
         }
         else
         {
-            return origin;
+            rb.MovePosition(origin);
         }
+
+    }
+
+    /*
+     * Rotate forward and sideways toward the lock target.
+     */
+    private void RotateToLookAtLock(ref Vector3 fwrd, ref Vector3 sdws)
+    {
 
     }
 
