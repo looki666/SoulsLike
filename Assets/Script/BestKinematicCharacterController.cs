@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BestKinematicCharacterController : MonoBehaviour {
+public class BestKinematicCharacterController : MonoBehaviour
+{
 
     /**
      * Character Components.
@@ -12,7 +13,9 @@ public class BestKinematicCharacterController : MonoBehaviour {
     Rigidbody rb;
     CapsuleCollider col;
 
+    public bool DEBUG = false;
     public bool dePenetrate = false;
+    public bool moveEvenIfFailedCollision = false;
 
     /**
      * Variables that handle falling movement.
@@ -23,7 +26,6 @@ public class BestKinematicCharacterController : MonoBehaviour {
     public float fallSpeedIncrementer = 0.1f;
 
     public float radiusOfLock = 3f;
-
     [SerializeField]
     [ReadOnly]
     private bool isLocked;
@@ -31,11 +33,11 @@ public class BestKinematicCharacterController : MonoBehaviour {
 
     [SerializeField]
     [ReadOnly]
-    private bool isSlopeSliding;
+    private bool isDodging;
 
     [SerializeField]
     [ReadOnly]
-    private bool isDodging;
+    private bool isSlopeSliding;
 
     private bool becameGrounded;
     [SerializeField]
@@ -87,23 +89,23 @@ public class BestKinematicCharacterController : MonoBehaviour {
     [ReadOnly]
     float gravitySpeed;
     Vector3 boxColliderDimensions;
+    RaycastHit hit;
     Collider[] nearbyColliders;
 
     Vector3 walkingVector;
     Vector3 sideWalkingVector;
 
+    private const string BlockingAnimationState = "Blocking";
+    private const string WalkingAnimationState = "Walking";
+    private const string SprintingAnimationState = "Sprinting";
+
     /*
      * Collision handler.
      */
-    public bool moveEvenIfFailedCollision = true;
     public int maxCollisionAttempts = 20;
     float surfaceOffset = .0001f;
     float backstepOffset = .001f;
     float minVelocityBreak = .001f;
-
-    Collider[] nearbyEnemies;
-
-    Transform closestEnemy;
 
     // Use this for initialization
     void Start()
@@ -127,34 +129,38 @@ public class BestKinematicCharacterController : MonoBehaviour {
         rb = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
 
-        closestEnemy = null;
         nearbyColliders = new Collider[16];
-        nearbyEnemies = new Collider[5];
     }
-
 
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Q))
+
+        //Handle Block animation state.
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            animator.SetBool("Blocking", true);
-        } else if (Input.GetKeyUp(KeyCode.Q))
+            animator.SetBool(BlockingAnimationState, true);
+        }
+        else if (Input.GetKeyUp(KeyCode.Q))
         {
-            animator.SetBool("Blocking", false);
+            animator.SetBool(BlockingAnimationState, false);
         }
 
+        //Check if is in locked mode.
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             pressedLocking = true;
         }
 
+        //Movement input.
         input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
 
+        //Dodging input.
         if (Input.GetKeyDown(KeyCode.E))
         {
             isDodging = true;
         }
-       
+
+        //Jump input and is grounded or can do multiple jumps.
         if (Input.GetKeyDown(KeyCode.Space) && (isGrounded || (currentJumpNumber < bodyParts.LegPart.JumpNumber)))
         {
             jump = true;
@@ -163,6 +169,7 @@ public class BestKinematicCharacterController : MonoBehaviour {
             currentJumpNumber++;
         }
 
+        //If grounded and can sprint, handle sprint input.
         if (isGrounded && canSprint)
         {
             if (canSprintToggle)
@@ -181,6 +188,7 @@ public class BestKinematicCharacterController : MonoBehaviour {
             Cursor.lockState = CursorLockMode.None;
         }
 
+        //Crouching input.
         if (canCrouch)
         {
             if (canCrouchToggle)
@@ -193,10 +201,8 @@ public class BestKinematicCharacterController : MonoBehaviour {
                 isCrouching = Input.GetKey(KeyCode.LeftControl);
             }
         }
-
+        //Crouch
         Crouch(isCrouching);
-
-
     }
 
 
@@ -206,49 +212,38 @@ public class BestKinematicCharacterController : MonoBehaviour {
         sideWalkingVector = transform.right;
         Vector3 platformSpeed = Vector3.zero;
 
-        int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(rb.position, 1 + 0.1f, nearbyColliders);
-
-        if (numbOfNearbyCols > 1) //if its colliding with something check grounding
+        //Check grounding.
+        RaycastHit groundInfo;
+        if (becameGrounded = CheckGrounding(out groundInfo))
         {
-            //Check grounding
-            RaycastHit groundInfo;
-            if (becameGrounded = CheckGrounding(out groundInfo))
+            //platformSpeed = AddSpeedFromPlatform(groundInfo.collider);
+            //GetWalkingVector(groundInfo, out walkingVector, out sideWalkingVector);
+            if (DEBUG)
             {
-                platformSpeed = AddSpeedFromPlatform(groundInfo.collider);
-                GetWalkingVector(groundInfo, out walkingVector, out sideWalkingVector);
                 Debug.DrawRay(transform.position, walkingVector * 5, Color.magenta);
             }
         }
-        else
+
+        bool justLanded = becameGrounded && !isGrounded;
+        bool justFell = (!isJumping || !jump) && !becameGrounded && isGrounded;
+
+        //Can check here the landing frame.
+        if (justLanded)
         {
-            becameGrounded = false;
+            // Debug.Log("landed");
         }
 
-        if (pressedLocking)
+        //Can check here the falling frame.
+        if (justFell)
         {
-            closestEnemy = null;
-            pressedLocking = false;
-            isLocked = false;
-            int numNearEnemies = Physics.OverlapSphereNonAlloc(rb.position, radiusOfLock, nearbyEnemies, 1 << 9);
-            float closestDistance = radiusOfLock;
-            for (int i = 0; i < numNearEnemies; i++)
-            {
-                Vector3 targetDir = nearbyEnemies[i].transform.position - rb.position;
-                if (Vector3.Angle(targetDir, transform.forward) < 45f)
-                {
-                    float distance = Vector3.Distance(nearbyEnemies[i].transform.position, rb.position);
-                    if (distance < closestDistance)
-                    {
-                        closestDistance = distance;
-                        closestEnemy = nearbyEnemies[i].transform;
-                        isLocked = true;
-                    }
-                }
-            }
+            // Debug.Log("fell");
         }
+
+        isGrounded = becameGrounded;
 
         speed = (walkingVector * input.z + sideWalkingVector * input.x);
 
+        //Check speed magnitude.
         if (isDodging)
         {
             speed *= bodyParts.LegPart.FlashStepSpeed;
@@ -263,38 +258,27 @@ public class BestKinematicCharacterController : MonoBehaviour {
             speed *= bodyParts.LegPart.MovementSpeed;
         }
 
-        if(speed.magnitude > 0)
+
+        //Set animation type for walking/sprinting
+        if (speed.magnitude > 0)
         {
             if (isSprinting)
             {
-                animator.SetBool("Sprinting", true);
-            } else
-            {
-                animator.SetBool("Walking", true);
-                animator.SetBool("Sprinting", false);
+                animator.SetBool(SprintingAnimationState, true);
             }
-        } else
+            else
+            {
+                animator.SetBool(WalkingAnimationState, true);
+                animator.SetBool(SprintingAnimationState, false);
+            }
+        }
+        else
         {
-            animator.SetBool("Walking", false);
-            animator.SetBool("Sprinting", false);
+            animator.SetBool(WalkingAnimationState, false);
+            animator.SetBool(SprintingAnimationState, false);
         }
 
-        bool justLanded = becameGrounded && !isGrounded;
-        bool justFell = (!isJumping || !jump) && !becameGrounded && isGrounded;
-        //can check here the landing frame
-        if (justLanded)
-        {
-           // Debug.Log("landed");
-        }
-
-        if (justFell)
-        {
-           // Debug.Log("fell");
-        }
-
-        isGrounded = becameGrounded;
-
-        if (!isGrounded || (isSlopeSliding && !isGrounded))
+        if (!isGrounded)
         {
             gravitySpeed += fallSpeedIncrementer;
             speed.y -= gravitySpeed;
@@ -315,45 +299,57 @@ public class BestKinematicCharacterController : MonoBehaviour {
         }
 
         Vector3 disp = Vector3.zero;
-        bodyParts.SetMovementState(speed, isJumping, isSprinting);
-        Vector3 newPosition = ContinuosCollisionDetection((platformSpeed + speed) * Time.deltaTime);
-
         if (dePenetrate)
         {
-            disp = DePenetrateCollisions(ref newPosition, numbOfNearbyCols);
+            int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(rb.position, 1 + 0.1f, nearbyColliders, ~(1 << 8));
+
+            if (DEBUG)
+            {
+                if (numbOfNearbyCols > 0)
+                {
+                    DebugExtension.DebugWireSphere(rb.position, Color.green, 1 + 0.1f);
+                }
+                else
+                {
+                    DebugExtension.DebugWireSphere(rb.position, Color.red, 1 + 0.1f);
+                }
+            }
+            disp = DePenetrateCollisions(ref speed, numbOfNearbyCols);
         }
 
-        rb.MovePosition(rb.position + newPosition + disp);
+        bodyParts.SetMovementState(speed, isJumping, isSprinting);
+        rb.MovePosition(ContinuosCollisionDetection(speed * Time.deltaTime));
     }
 
+    /*
+     * Verify if character would penetrate and try to move just enough to not collide.
+     */
     private Vector3 ContinuosCollisionDetection(Vector3 movementSpeed)
     {
+        Vector3 originalVelocity = movementSpeed;
         Vector3 origin = rb.position;
-        Vector3 finalSpeed = Vector3.zero;
         int attempts;
         for (attempts = 0; attempts < maxCollisionAttempts; attempts++)
         {
             Vector3 originTop = origin;
-            originTop.y += col.height / 4;
+            originTop.y += col.height / 2;
 
             Vector3 originBottom = origin;
-            originBottom.y -= col.height / 4;
+            originBottom.y -= col.height / 2;
 
             Vector3 prevOrigin = origin;
+            Vector3 hitNormal = Vector3.zero;
 
-            float castDistance = movementSpeed.magnitude + backstepOffset;
-            Vector3 castDirection = movementSpeed.normalized;
+            float castDistance = speed.magnitude + backstepOffset;
+            Vector3 castDirection = speed.normalized;
             Vector3 castStartBackOffsetT = originTop - (castDirection * backstepOffset);
             Vector3 castStartBackOffsetB = originBottom - (castDirection * backstepOffset);
 
             RaycastHit hitInfo;
-
-            if (Physics.CapsuleCast(castStartBackOffsetT, castStartBackOffsetB, col.radius, castDirection, out hitInfo, castDistance))
+           if (Physics.CapsuleCast(castStartBackOffsetT, castStartBackOffsetB, col.radius, castDirection, out hitInfo, castDistance))
             {
-                Debug.DrawRay(castStartBackOffsetT, castDirection, Color.red, 5f);
-
-                Debug.DrawRay(origin, castDirection * hitInfo.distance, Color.cyan, 1f);
-
+                Debug.DrawLine(rb.position, CastCenterOnCollision(origin, castDirection, hitInfo.distance), Color.red, 3f);
+                Debug.Log(CastCenterOnCollision(origin, castDirection, hitInfo.distance));
                 origin = CastCenterOnCollision(origin, castDirection, hitInfo.distance);
                 origin += (hitInfo.normal * surfaceOffset);
 
@@ -364,26 +360,16 @@ public class BestKinematicCharacterController : MonoBehaviour {
                 Physics.Raycast(p, -hitInfo.normal, out hit, 0.1f);
 
                 Vector3 remainingSpeed = castDirection * remainingDistance;
-                //Debug.DrawRay(origin, remainingSpeed * 2, Color.yellow, 5f);
-                //Debug.Log(remainingSpeed +" - "+ Vector3.Project(remainingSpeed, hitInfo.normal));
                 movementSpeed = remainingSpeed - Vector3.Project(remainingSpeed, hitInfo.normal);
-                Debug.DrawRay(hitInfo.point, movementSpeed, Color.magenta, 5f);
-
-                Debug.DrawRay(hitInfo.point, hitInfo.normal, Color.cyan, 5f);
-                DebugExtension.DebugWireSphere(hitInfo.point, 0.005f, 5f);
 
                 if (movementSpeed.magnitude <= minVelocityBreak) break;
             }
             else
             {
-                Debug.DrawRay(castStartBackOffsetT, castDirection, Color.white, 5f);
-                finalSpeed +=movementSpeed;
                 origin += movementSpeed;
                 break;
             }
-
         }
-
 
         bool failedCollision = attempts >= maxCollisionAttempts;
         if (failedCollision) Debug.LogWarning("Failed collision handling");
@@ -395,11 +381,14 @@ public class BestKinematicCharacterController : MonoBehaviour {
         }
         else
         {
-            return finalSpeed;
+            return origin;
         }
+
     }
 
-
+    /*
+     * If character would penetrate a volume then move it AND depenetrate it by the right ammount.
+     */
     private Vector3 DePenetrateCollisions(ref Vector3 speed, int numbOfNearbyCols)
     {
         Vector3 displacement = new Vector3();
@@ -443,7 +432,6 @@ public class BestKinematicCharacterController : MonoBehaviour {
         return displacement;
     }
 
-
     /**
     * Check if Character is grounded by spherecasting the ground.
     */
@@ -451,9 +439,9 @@ public class BestKinematicCharacterController : MonoBehaviour {
     {
         bool wasGrounded = isGrounded;
         isSlopeSliding = false;
-        if (Physics.SphereCast(transform.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + speed.magnitude))
-        {
 
+        if (Physics.SphereCast(rb.position, 0.5f, -transform.up, out hitInfo, col.height / 4))
+        {
             if (Vector3.Dot(hitInfo.normal, Vector3.up) > groundingAngle)
             {
                 currentJumpNumber = 0;
@@ -470,41 +458,17 @@ public class BestKinematicCharacterController : MonoBehaviour {
         return false;
     }
 
-    private void GetWalkingVector(RaycastHit groundInfo, out Vector3 walkingDir, out Vector3 sideDir)
-    {
-        Vector3 n = groundInfo.normal.normalized;
-        sideDir = Vector3.Cross(n, transform.forward.normalized);
-        walkingDir = Vector3.Cross(sideDir, n);
-    }
-
+    /**
+     * Move center point to a point at the end of a direction and distance.
+     */
     private Vector3 CastCenterOnCollision(Vector3 origin, Vector3 directionCast, float hitInfoDistance)
     {
         return origin + (directionCast.normalized * hitInfoDistance);
     }
 
-    /**
- * When the character gets on top of a platform it should add the platform speed to its own speed.
- */
-    private Vector3 AddSpeedFromPlatform(Collider col)
-    {
-        Vector3 platformSpeed = Vector3.zero;
-        MovePlatform mover = col.gameObject.GetComponent<MovePlatform>();
-        if (mover != null)
-        {
-            platformSpeed = mover.currDir;
-        }
-        else
-        {
-            Rigidbody colRb = col.gameObject.GetComponent<Rigidbody>();
-            if (colRb != null)
-            {
-                platformSpeed = colRb.velocity;
-            }
-        }
-
-        return platformSpeed;
-    }
-
+    /*
+     * Modify Collider and mesh if crouching
+     */
     private void Crouch(bool crouch)
     {
         if (crouch)

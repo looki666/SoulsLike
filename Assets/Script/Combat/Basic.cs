@@ -44,10 +44,8 @@ public class Basic : MonoBehaviour, IFightStyleSolver
             this.input = input;
         }
 
-        if (!isAttacking)
-        {
-            HandleInput();
-        } 
+
+        HandleInput();
     }
 
     public void HandleInput()
@@ -65,7 +63,7 @@ public class Basic : MonoBehaviour, IFightStyleSolver
                 animator.SetTrigger("bothAttack");
             }
 
-                input = null;
+            input = null;
         }
     }
 }
