@@ -12,6 +12,7 @@ public class BestKinematicCharacterController : MonoBehaviour
     CharacterBodyCostumization bodyParts;
     Rigidbody rb;
     CapsuleCollider col;
+    CameraController camera;
 
     public bool DEBUG = false;
     public bool dePenetrate = false;
@@ -91,6 +92,8 @@ public class BestKinematicCharacterController : MonoBehaviour
     Vector3 boxColliderDimensions;
     RaycastHit hit;
     Collider[] nearbyColliders;
+    Collider[] nearbyEnemies;
+    Transform closestEnemy;
 
     Vector3 walkingVector;
     Vector3 sideWalkingVector;
@@ -124,12 +127,15 @@ public class BestKinematicCharacterController : MonoBehaviour
         gravitySpeed = GRAVITY * fallSpeed;
         boxColliderDimensions = new Vector3(2 / 3f, 1f, 2 / 3f);
 
+        camera = GetComponentInChildren<CameraController>();
         bodyParts = GetComponent<CharacterBodyCostumization>();
         animator = bodyParts.ArmsPart.animator;
         rb = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
 
+        closestEnemy = null;
         nearbyColliders = new Collider[16];
+        nearbyEnemies = new Collider[5];
     }
 
     void Update()
@@ -236,6 +242,41 @@ public class BestKinematicCharacterController : MonoBehaviour
 
         isGrounded = becameGrounded;
 
+        if (pressedLocking)
+        {
+            closestEnemy = null;
+            pressedLocking = false;
+            isLocked = false;
+            DebugExtension.DebugWireSphere(rb.position, Color.red, radiusOfLock, 2f);
+            int numNearEnemies = Physics.OverlapSphereNonAlloc(rb.position, radiusOfLock, nearbyEnemies, 1 << 9);
+            float closestDistance = radiusOfLock;
+            for (int i = 0; i < numNearEnemies; i++)
+            {
+                Debug.Log(nearbyEnemies[i].name);
+                Vector3 targetDir = nearbyEnemies[i].transform.position - rb.position;
+                if (Vector3.Angle(targetDir, transform.forward) < 45f)
+                {
+                    float distance = Vector3.Distance(nearbyEnemies[i].transform.position, rb.position);
+                    if (distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestEnemy = nearbyEnemies[i].transform;
+                        isLocked = true;
+                    }
+                }
+            }
+
+            camera.LockCameraOnTarget(closestEnemy);
+        }
+
+        if (isLocked)
+        {
+            if (DEBUG)
+            {
+                //Debug.DrawLine(rb.position, closestEnemy.position, Color.red);
+            }
+        }
+
         speed = (walkingVector * input.z + sideWalkingVector * input.x);
 
         //Check speed magnitude.
@@ -324,6 +365,11 @@ public class BestKinematicCharacterController : MonoBehaviour
         Vector3 n = groundInfo.normal.normalized;
         sideDir = Vector3.Cross(n, transform.forward.normalized);
         walkingDir = Vector3.Cross(sideDir, n);
+    }
+
+    private void FocusCameraOnTransform(Transform tr)
+    {
+
     }
 
     /**
