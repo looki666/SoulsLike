@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Basic : MonoBehaviour, IFightStyleSolver
 {
 
@@ -19,6 +20,18 @@ public class Basic : MonoBehaviour, IFightStyleSolver
     }
 
     private CombatInput input;
+    private ECombatInputType currentAttack;
+    public ECombatInputType CurrentAttack
+    {
+        set
+        {
+            currentAttack = value;
+        }
+        get
+        {
+            return currentAttack;
+        }
+    }
 
     // Use this for initialization
     void Start()
@@ -51,7 +64,8 @@ public class Basic : MonoBehaviour, IFightStyleSolver
     {
         if (input != null)
         {
-            Debug.Log("Handle input " + input.combatType);
+            Debug.Log("Handle input " + input.combatType
+                );
             if (ECombatInputType.WEAK_ATTACK.Equals(input.combatType))
             {
                 animator.SetTrigger("attack");
@@ -66,4 +80,10 @@ public class Basic : MonoBehaviour, IFightStyleSolver
             input = null;
         }
     }
+
+    public void HandleSuccessfulHits()
+    {
+
+    }
+
 }

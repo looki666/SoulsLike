@@ -8,8 +8,8 @@ public class ArmPart : MonoBehaviour {
     public IFightStyleSolver fightHandler;
     public Animator animator;
 
-    public float Damage { get { return armData.damage; } set { armData.damage = value; } }
-    public float HeavyDamage { get { return armData.heavyDamage; } set { armData.heavyDamage = value; } }
+    public int Damage { get { return armData.damage; } set { armData.damage = value; } }
+    public int HeavyDamage { get { return armData.heavyDamage; } set { armData.heavyDamage = value; } }
 
     // Use this for initialization
     void Start () {
@@ -26,6 +26,21 @@ public class ArmPart : MonoBehaviour {
     public void AttackAbility()
     {
         armData.AttackAbility();
+    }
+
+    public void OnAttackHit(Collider enemy)
+    {
+        int damageDone;
+        if (fightHandler.CurrentAttack == ECombatInputType.WEAK_ATTACK)
+        {
+            damageDone = Damage;
+        } else 
+        {
+            damageDone = HeavyDamage;
+        }
+        Debug.Log(damageDone);
+        //TODO: replace with Enemy having a function that handles taking damage
+        enemy.GetComponent<Enemy>().hp -= damageDone;
     }
 
 }

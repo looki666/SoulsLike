@@ -8,4 +8,5 @@ public interface IFightStyleSolver {
     void HandleInput();
     void SetAnimator(Animator animator);
     bool IsAttacking { set; }
+    ECombatInputType CurrentAttack { set; get; }
 }

@@ -16,6 +16,13 @@ public class BasicAnimatorController : StateMachineBehaviour {
         if(stateInfo.IsName("Punch") || stateInfo.IsName("StrongPunch") || stateInfo.IsName("2Handed"))
         {
             fightSolver.IsAttacking = true;
+            if (stateInfo.IsName("Punch")) {
+                fightSolver.CurrentAttack = ECombatInputType.WEAK_ATTACK;
+            } else if (stateInfo.IsName("StrongPunch")) {
+                fightSolver.CurrentAttack = ECombatInputType.STRONG_ATTACK;
+            } else if (stateInfo.IsName("2Handed")) {
+                fightSolver.CurrentAttack = ECombatInputType.BOTH_ATTACKS;
+            }
         }
     }
 
@@ -34,6 +41,7 @@ public class BasicAnimatorController : StateMachineBehaviour {
         if (stateInfo.IsName("Punch") || stateInfo.IsName("StrongPunch") || stateInfo.IsName("2Handed"))
         {
             fightSolver.IsAttacking = false;
+            fightSolver.CurrentAttack = ECombatInputType.NONE;
             fightSolver.HandleInput();
         }
     }

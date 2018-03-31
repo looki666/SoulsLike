@@ -5,8 +5,8 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Part/Arm/BasicArm")]
 public class BasicArmScriptable : ScriptableObject {
 
-    public float damage;
-    public float heavyDamage;
+    public int damage;
+    public int heavyDamage;
 
     public void AttackAbility()
     {
