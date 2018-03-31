@@ -247,12 +247,14 @@ public class BestKinematicCharacterController : MonoBehaviour
             closestEnemy = null;
             pressedLocking = false;
             isLocked = false;
-            DebugExtension.DebugWireSphere(rb.position, Color.red, radiusOfLock, 2f);
+            if(DEBUG)
+            {
+                DebugExtension.DebugWireSphere(rb.position, Color.red, radiusOfLock, 2f);
+            }
             int numNearEnemies = Physics.OverlapSphereNonAlloc(rb.position, radiusOfLock, nearbyEnemies, 1 << 9);
             float closestDistance = radiusOfLock;
             for (int i = 0; i < numNearEnemies; i++)
             {
-                Debug.Log(nearbyEnemies[i].name);
                 Vector3 targetDir = nearbyEnemies[i].transform.position - rb.position;
                 if (Vector3.Angle(targetDir, transform.forward) < 45f)
                 {
@@ -273,7 +275,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         {
             if (DEBUG)
             {
-                //Debug.DrawLine(rb.position, closestEnemy.position, Color.red);
+                Debug.DrawLine(rb.position, closestEnemy.position, Color.red);
             }
         }
 
@@ -314,12 +316,14 @@ public class BestKinematicCharacterController : MonoBehaviour
             animator.SetBool(SprintingAnimationState, false);
         }
 
+        //If not grounded add falling speed
         if (!isGrounded)
         {
             gravitySpeed += fallSpeedIncrementer;
             speed.y -= gravitySpeed;
         }
 
+        //If pressed jump, set variables for behaviour
         if (jump)
         {
             jump = false;
@@ -328,29 +332,11 @@ public class BestKinematicCharacterController : MonoBehaviour
             isGrounded = false;
         }
 
+        //If is Jumping add upwards movement
         if (isJumping)
         {
             speed.y += JumpSpeed;
             JumpSpeed = Mathf.Max(0, JumpSpeed - Time.deltaTime * Time.deltaTime * 2000);
-        }
-
-        Vector3 disp = Vector3.zero;
-        if (dePenetrate)
-        {
-            int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(rb.position, 1 + 0.1f, nearbyColliders, ~(1 << 8));
-
-            if (DEBUG)
-            {
-                if (numbOfNearbyCols > 0)
-                {
-                    DebugExtension.DebugWireSphere(rb.position, Color.green, 1 + 0.1f);
-                }
-                else
-                {
-                    DebugExtension.DebugWireSphere(rb.position, Color.red, 1 + 0.1f);
-                }
-            }
-            disp = DePenetrateCollisions(ref speed, numbOfNearbyCols);
         }
 
         bodyParts.SetMovementState(speed, isJumping, isSprinting);
@@ -462,7 +448,27 @@ public class BestKinematicCharacterController : MonoBehaviour
         }
         else
         {
-            rb.MovePosition(origin);
+            Vector3 disp = Vector3.zero;
+            if (dePenetrate)
+            {
+                int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(rb.position, 1 + 0.1f, nearbyColliders, ~(1 << 8));
+
+                if (DEBUG)
+                {
+                    if (numbOfNearbyCols > 0)
+                    {
+                        DebugExtension.DebugWireSphere(rb.position, Color.green, 1 + 0.1f);
+                    }
+                    else
+                    {
+                        DebugExtension.DebugWireSphere(rb.position, Color.red, 1 + 0.1f);
+                    }
+                }
+                disp = DePenetrateCollisions(ref speed, numbOfNearbyCols);
+            }
+
+
+            rb.MovePosition(origin + disp);
         }
 
     }

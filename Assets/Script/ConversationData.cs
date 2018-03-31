@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum EAttacks {
+public class ConversationData : MonoBehaviour {
+
+    public SOConversation conv;
+
 
 }
