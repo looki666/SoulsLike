@@ -12,7 +12,7 @@ public class BestKinematicCharacterController : MonoBehaviour
     CharacterBodyCostumization bodyParts;
     Rigidbody rb;
     CapsuleCollider col;
-    CameraController camera;
+    CameraController myCamera;
 
     public bool DEBUG = false;
     public bool dePenetrate = false;
@@ -127,7 +127,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         gravitySpeed = GRAVITY * fallSpeed;
         boxColliderDimensions = new Vector3(2 / 3f, 1f, 2 / 3f);
 
-        camera = GetComponentInChildren<CameraController>();
+        myCamera = GetComponentInChildren<CameraController>();
         bodyParts = GetComponent<CharacterBodyCostumization>();
         animator = bodyParts.ArmsPart.animator;
         rb = GetComponent<Rigidbody>();
@@ -268,7 +268,7 @@ public class BestKinematicCharacterController : MonoBehaviour
                 }
             }
 
-            camera.LockCameraOnTarget(closestEnemy);
+            myCamera.LockCameraOnTarget(closestEnemy);
         }
 
         if (isLocked)
@@ -386,7 +386,6 @@ public class BestKinematicCharacterController : MonoBehaviour
      */
     private void ContinuosCollisionDetection(Vector3 movementSpeed)
     {
-        Vector3 originalVelocity = movementSpeed;
         Vector3 origin = rb.position;
         int attempts;
         Color startColor = Color.blue;
@@ -535,7 +534,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         bool wasGrounded = isGrounded;
         isSlopeSliding = false;
 
-        if (Physics.SphereCast(rb.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + 0.01f))
+        if (Physics.SphereCast(rb.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + 0.01f, ~(1 << 8)))
         {
             if (Vector3.Dot(hitInfo.normal, Vector3.up) > groundingAngle)
             {

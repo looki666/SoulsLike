@@ -13,7 +13,6 @@ public class AttackTrigger : MonoBehaviour {
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other.name);
         arms.OnAttackHit(other);
     }
 

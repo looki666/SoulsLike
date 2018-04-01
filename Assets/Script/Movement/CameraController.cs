@@ -63,7 +63,6 @@ public class CameraController : MonoBehaviour {
         {
             wasLocked = true;
             Vector3 dirXZ = new Vector3(target.position.x - transform.parent.position.x, 0f, target.position.z - transform.parent.position.z);
-            Vector3 forwardXZ = Vector3.ProjectOnPlane(transform.forward, transform.up);
             parentRb.MoveRotation(Quaternion.LookRotation(dirXZ));
         }
     }
