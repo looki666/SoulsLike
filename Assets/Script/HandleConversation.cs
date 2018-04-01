@@ -12,10 +12,13 @@ public class HandleConversation : MonoBehaviour {
     public Text convText;
     bool inConversation;
     bool pressedInteract;
+    ConversationData currConversation;
+    int currConversationLine;
 
 
     private void Awake()
     {
+        currConversationLine = 0;
         inConversation = false;
         rb = GetComponent<Rigidbody>();
         nearbyNpcs = new Collider[1];
@@ -55,8 +58,14 @@ public class HandleConversation : MonoBehaviour {
             //If in a conversation
             if (inConversation)
             {
-                //F press or moving away disables conversation
-                if (pressedInteract || nNpcsNearby < 1)
+                //F press
+                if (pressedInteract)
+                {
+                    NextLineConversation();
+                }
+
+                //moving away disables conversation
+                if (nNpcsNearby < 1)
                 {
                     StopConversation();
                 }
@@ -75,8 +84,21 @@ public class HandleConversation : MonoBehaviour {
         panel.enabled = true;
         inConversation = true;
         interactionText.enabled = false;
-        ConversationData conversations = nearbyNpcs[0].GetComponent<ConversationData>();
-        convText.text = conversations.conv.text;
+        currConversation = nearbyNpcs[0].GetComponent<ConversationData>();
+        convText.text = currConversation.GetConversation(currConversationLine);
+        pressedInteract = false;
+    }
+
+    void NextLineConversation()
+    {
+        currConversationLine++;
+        if(currConversationLine < currConversation.GetSizeConversation())
+        {
+            convText.text = currConversation.GetConversation(currConversationLine);
+        } else
+        {
+            StopConversation();
+        }
         pressedInteract = false;
     }
 
@@ -86,6 +108,7 @@ public class HandleConversation : MonoBehaviour {
         inConversation = false;
         convText.text = "";
         pressedInteract = false;
+        currConversationLine = 0;
     }
 
 
