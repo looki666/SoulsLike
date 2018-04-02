@@ -7,11 +7,15 @@ public class CharacterBodyCostumization : MonoBehaviour {
     private ArmPart armPart;
     private TorsoPart torsoPart;
     private LegPart legPart;
+    private HandleUIBars uiBars;
 
     private ECombatInputType noInput = ECombatInputType.NONE;
     private Vector3 speed;
     private bool isJumping;
     private bool isSprinting;
+
+    private int currHp;
+    private int currStamina;
 
     public ArmPart ArmsPart
     {
@@ -34,6 +38,13 @@ public class CharacterBodyCostumization : MonoBehaviour {
         armPart = GetComponentInChildren<ArmPart>();
         torsoPart = GetComponentInChildren<TorsoPart>();
         legPart = GetComponentInChildren<LegPart>();
+        currHp = torsoPart.maxHp;
+        currStamina = torsoPart.maxStamina;
+        uiBars = GetComponent<HandleUIBars>();
+        uiBars.UpdateBarMaxValue(0, torsoPart.maxHp);
+        uiBars.UpdateBarMaxValue(1, torsoPart.maxStamina);
+        uiBars.UpdateBarValue(0, currHp);
+        uiBars.UpdateBarValue(1, currStamina);
     }
 	
     // Update is called once per frame
@@ -53,7 +64,6 @@ public class CharacterBodyCostumization : MonoBehaviour {
             {
                 someInputWasPressed = ECombatInputType.STRONG_ATTACK;
             }
-
         }
 
         if(someInputWasPressed != ECombatInputType.NONE)

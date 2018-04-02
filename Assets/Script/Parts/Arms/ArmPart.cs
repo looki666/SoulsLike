@@ -10,6 +10,8 @@ public class ArmPart : MonoBehaviour {
 
     public int Damage { get { return armData.damage; } set { armData.damage = value; } }
     public int HeavyDamage { get { return armData.heavyDamage; } set { armData.heavyDamage = value; } }
+    public int StaminaCost { get { return armData.normalStaminaCost; } set { armData.normalStaminaCost = value; } }
+    public int HeavyStaminaCost { get { return armData.heavyStaminaCost; } set { armData.heavyStaminaCost = value; } }
 
     // Use this for initialization
     void Start () {
@@ -40,7 +42,7 @@ public class ArmPart : MonoBehaviour {
         }
         Debug.Log(damageDone);
         //TODO: replace with Enemy having a function that handles taking damage
-        enemy.GetComponent<Enemy>().hp -= damageDone;
+        enemy.GetComponent<Enemy>().Damage(damageDone);
     }
 
 }

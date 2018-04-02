@@ -6,7 +6,9 @@ using UnityEngine;
 public class BasicArmScriptable : ScriptableObject {
 
     public int damage;
+    public int normalStaminaCost;
     public int heavyDamage;
+    public int heavyStaminaCost;
 
     public void AttackAbility()
     {

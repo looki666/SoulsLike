@@ -4,7 +4,13 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour {
 
-    public int hp = 100;
+    [SerializeField]
+    [ReadOnly]
+    private int hp = 100;
+
+    [SerializeField]
+    [ReadOnly]
+    private bool isDead = false;
 
 	// Use this for initialization
 	void Awake () {
@@ -15,4 +21,9 @@ public class Enemy : MonoBehaviour {
 	void Update () {
 		
 	}
+
+    public void Damage(int dmg)
+    {
+        hp = Mathf.Max(hp - dmg, 0);
+    }
 }

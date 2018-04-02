@@ -140,7 +140,6 @@ public class BestKinematicCharacterController : MonoBehaviour
 
     void Update()
     {
-
         //Handle Block animation state.
         if (Input.GetKeyDown(KeyCode.Q))
         {
