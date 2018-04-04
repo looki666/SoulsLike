@@ -16,6 +16,7 @@ public class CombatInput {
         this.isSprinting = isSprinting;
         this.combatType = combatType;
     }
+
 }
 
 public enum ECombatInputType

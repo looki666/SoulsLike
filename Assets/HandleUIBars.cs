@@ -32,5 +32,9 @@ public class HandleUIBars : MonoBehaviour {
         sliders[index].value = value;
     }
 
+    public void ChangeBarValueBy(int index, int value)
+    {
+        sliders[index].value += value;
+    }
 
 }

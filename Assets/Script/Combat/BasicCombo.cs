@@ -19,13 +19,13 @@ public class BasicCombo : MonoBehaviour, IFightStyleSolver
     private ECombatInputType currentAttack;
     public ECombatInputType CurrentAttack
     {
-        set
-        {
-            currentAttack = value;
-        }
         get
         {
             return currentAttack;
+        }
+        set
+        {
+            currentAttack = value;
         }
     }
 

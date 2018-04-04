@@ -352,11 +352,6 @@ public class BestKinematicCharacterController : MonoBehaviour
         walkingDir = Vector3.Cross(sideDir, n);
     }
 
-    private void FocusCameraOnTransform(Transform tr)
-    {
-
-    }
-
     /**
      * When the character gets on top of a platform it should add the platform speed to its own speed.
      */
@@ -408,6 +403,11 @@ public class BestKinematicCharacterController : MonoBehaviour
             RaycastHit hitInfo;
            if (Physics.CapsuleCast(castStartBackOffsetTop, castStartBackOffsetBot, col.radius, castDirection, out hitInfo, castDistance, ~(1<<8)))
             {
+                if (hitInfo.collider.isTrigger)
+                {
+                    origin += movementSpeed;
+                    break;
+                }
                 origin = CastCenterOnCollision(castStartBackOffset, castDirection, hitInfo.distance);
                 origin += (hitInfo.normal * surfaceOffset);
 
@@ -535,6 +535,10 @@ public class BestKinematicCharacterController : MonoBehaviour
 
         if (Physics.SphereCast(rb.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + 0.01f, ~(1 << 8)))
         {
+            if (hitInfo.collider.isTrigger)
+            {
+                return false;
+            }
             if (Vector3.Dot(hitInfo.normal, Vector3.up) > groundingAngle)
             {
                 currentJumpNumber = 0;

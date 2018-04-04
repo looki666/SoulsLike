@@ -13,21 +13,56 @@ public class ArmPart : MonoBehaviour {
     public int StaminaCost { get { return armData.normalStaminaCost; } set { armData.normalStaminaCost = value; } }
     public int HeavyStaminaCost { get { return armData.heavyStaminaCost; } set { armData.heavyStaminaCost = value; } }
 
+    private CharacterBodyCostumization body;
+
     // Use this for initialization
     void Start () {
         fightHandler = GetComponent<IFightStyleSolver>();
         animator = GetComponent<Animator>();
         fightHandler.SetAnimator(animator);
+        body = GetComponentInParent<CharacterBodyCostumization>();
     }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 
     public void AttackAbility()
     {
         armData.AttackAbility();
+    }
+
+    public void AttackInput(CombatInput input)
+    {
+        fightHandler.ReceiveInput(input);
+    }
+
+    public void StartedNewAttack(ECombatInputType attack)
+    {
+        //Set attack type
+        fightHandler.CurrentAttack = attack;
+        //Set attacking state
+        if(attack != ECombatInputType.NONE)
+        {
+            fightHandler.IsAttacking = true;
+        }
+        else
+        {
+            fightHandler.IsAttacking = false;
+            return;
+        }
+
+    }
+
+    public void SpendStamina()
+    {
+        int staminaSpent;
+        if (fightHandler.CurrentAttack == ECombatInputType.WEAK_ATTACK)
+        {
+            staminaSpent = StaminaCost;
+        }
+        else
+        {
+            staminaSpent = HeavyStaminaCost;
+        }
+        body.CurrStamina -= staminaSpent;
+        body.ResetRestDelay();
     }
 
     public void OnAttackHit(Collider enemy)
@@ -40,7 +75,7 @@ public class ArmPart : MonoBehaviour {
         {
             damageDone = HeavyDamage;
         }
-        Debug.Log(damageDone);
+
         //TODO: replace with Enemy having a function that handles taking damage
         enemy.GetComponent<Enemy>().Damage(damageDone);
     }

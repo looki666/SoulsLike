@@ -8,11 +8,13 @@ public class TorsoPart : MonoBehaviour {
 
     public int maxHp;
     public int maxStamina;
+    public int staminaRegen;
 
     // Use this for initialization
     void Awake () {
         maxHp = torsoData.maxHp;
         maxStamina = torsoData.maxStamina;
+        staminaRegen = torsoData.staminaRegen;
     }
 	
 	// Update is called once per frame

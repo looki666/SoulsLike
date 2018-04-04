@@ -17,6 +17,11 @@ public class CharacterBodyCostumization : MonoBehaviour {
     private int currHp;
     private int currStamina;
 
+    private float timer;
+    private float timerRestDelay;
+    public float staminaRestDelay;
+    private bool checkDelay;
+
     public ArmPart ArmsPart
     {
         get { return armPart; }
@@ -31,7 +36,18 @@ public class CharacterBodyCostumization : MonoBehaviour {
         get { return legPart; }
         set { legPart = value; }
     }
-    
+
+    public int CurrHp
+    {
+        get { return currHp; }
+        set { currHp = Mathf.Clamp(value, 0, torsoPart.maxHp); uiBars.UpdateBarValue(0, currHp); }
+    }
+
+    public int CurrStamina
+    {
+        get { return currStamina; }
+        set { currStamina = Mathf.Clamp(value, 0, torsoPart.maxStamina); uiBars.UpdateBarValue(1, currStamina); }
+    }
 
     // Use this for initialization
     void Awake () {
@@ -45,10 +61,30 @@ public class CharacterBodyCostumization : MonoBehaviour {
         uiBars.UpdateBarMaxValue(1, torsoPart.maxStamina);
         uiBars.UpdateBarValue(0, currHp);
         uiBars.UpdateBarValue(1, currStamina);
+        checkDelay = false;
     }
 	
     // Update is called once per frame
     void Update () {
+        if (checkDelay)
+        {
+            timerRestDelay += Time.deltaTime;
+        }
+
+        if (timerRestDelay >= staminaRestDelay)
+        {
+            checkDelay = false;
+            if (currStamina < torsoPart.maxStamina)
+            {
+                timer += Time.deltaTime;
+                if (timer >= (1f / torsoPart.staminaRegen))
+                {
+                    timer = 0;
+                    CurrStamina++;
+                }
+            }
+        }
+
         ECombatInputType someInputWasPressed = noInput;
 
         if (Input.GetMouseButtonDown(0))
@@ -69,9 +105,15 @@ public class CharacterBodyCostumization : MonoBehaviour {
         if(someInputWasPressed != ECombatInputType.NONE)
         {
             CombatInput input = new CombatInput(speed, isJumping, isSprinting, someInputWasPressed);
-            armPart.fightHandler.ReceiveInput(input);
+            armPart.AttackInput(input);
         }
 
+    }
+
+    public void ResetRestDelay()
+    {
+        checkDelay = true;
+        timerRestDelay = 0;
     }
 
     public void SetMovementState(Vector3 speed, bool isJumping, bool isSprinting)

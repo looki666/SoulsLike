@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Basic : MonoBehaviour, IFightStyleSolver
 {
-
     private Animator animator;
 
     [SerializeField]
@@ -23,13 +22,13 @@ public class Basic : MonoBehaviour, IFightStyleSolver
     private ECombatInputType currentAttack;
     public ECombatInputType CurrentAttack
     {
+        get
+        {
+           return currentAttack;
+        }
         set
         {
             currentAttack = value;
-        }
-        get
-        {
-            return currentAttack;
         }
     }
 
@@ -56,7 +55,6 @@ public class Basic : MonoBehaviour, IFightStyleSolver
         {
             this.input = input;
         }
-
         HandleInput();
     }
 
@@ -64,8 +62,6 @@ public class Basic : MonoBehaviour, IFightStyleSolver
     {
         if (input != null)
         {
-            Debug.Log("Handle input " + input.combatType
-                );
             if (ECombatInputType.WEAK_ATTACK.Equals(input.combatType))
             {
                 animator.SetTrigger("attack");

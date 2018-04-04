@@ -4,24 +4,23 @@ using UnityEngine;
 
 public class BasicAnimatorController : StateMachineBehaviour {
 
-    private IFightStyleSolver fightSolver;
+    private ArmPart armPart;
 
 	 // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
 	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-        if (fightSolver == null)
+        if (armPart == null)
         {
-            fightSolver = animator.GetComponent<IFightStyleSolver>();
+            armPart = animator.GetComponent<ArmPart>();
         }
 
         if(stateInfo.IsName("Punch") || stateInfo.IsName("StrongPunch") || stateInfo.IsName("2Handed"))
         {
-            fightSolver.IsAttacking = true;
             if (stateInfo.IsName("Punch")) {
-                fightSolver.CurrentAttack = ECombatInputType.WEAK_ATTACK;
+                armPart.StartedNewAttack(ECombatInputType.WEAK_ATTACK);
             } else if (stateInfo.IsName("StrongPunch")) {
-                fightSolver.CurrentAttack = ECombatInputType.STRONG_ATTACK;
+                armPart.StartedNewAttack(ECombatInputType.STRONG_ATTACK);
             } else if (stateInfo.IsName("2Handed")) {
-                fightSolver.CurrentAttack = ECombatInputType.BOTH_ATTACKS;
+                armPart.StartedNewAttack(ECombatInputType.BOTH_ATTACKS);
             }
         }
     }
@@ -33,16 +32,15 @@ public class BasicAnimatorController : StateMachineBehaviour {
 
 	// OnStateExit is called when a transition ends and the state machine finishes evaluating this state
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
-        if(fightSolver == null)
+        if(armPart == null)
         {
-            fightSolver = animator.GetComponent<IFightStyleSolver>();
+            armPart = animator.GetComponent<ArmPart>();
         }
 
         if (stateInfo.IsName("Punch") || stateInfo.IsName("StrongPunch") || stateInfo.IsName("2Handed"))
         {
-            fightSolver.IsAttacking = false;
-            fightSolver.CurrentAttack = ECombatInputType.NONE;
-            fightSolver.HandleInput();
+            armPart.StartedNewAttack(ECombatInputType.NONE);
+            //fightSolver.HandleInput();
         }
     }
 

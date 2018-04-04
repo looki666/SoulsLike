@@ -7,4 +7,5 @@ public class BasicTorsoScriptable : ScriptableObject
 {
     public int maxHp;
     public int maxStamina;
+    public int staminaRegen;
 }
