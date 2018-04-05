@@ -19,8 +19,13 @@ public class CharacterBodyCostumization : MonoBehaviour {
 
     private float timer;
     private float timerRestDelay;
+    private float damageAreaDelay;
     public float staminaRestDelay;
-    private bool checkDelay;
+    public float timerStaminaRate;
+
+    [SerializeField]
+    [ReadOnly]
+    private bool startRegeningStamina;
 
     public ArmPart ArmsPart
     {
@@ -61,23 +66,26 @@ public class CharacterBodyCostumization : MonoBehaviour {
         uiBars.UpdateBarMaxValue(1, torsoPart.maxStamina);
         uiBars.UpdateBarValue(0, currHp);
         uiBars.UpdateBarValue(1, currStamina);
-        checkDelay = false;
+        startRegeningStamina = false;
+        timerRestDelay = 0;
     }
 	
     // Update is called once per frame
     void Update () {
-        if (checkDelay)
+        //start delay before starting regen
+        if (startRegeningStamina)
         {
             timerRestDelay += Time.deltaTime;
         }
 
+        //can start regen
         if (timerRestDelay >= staminaRestDelay)
         {
-            checkDelay = false;
+            startRegeningStamina = false;
             if (currStamina < torsoPart.maxStamina)
             {
                 timer += Time.deltaTime;
-                if (timer >= (1f / torsoPart.staminaRegen))
+                if (timer >= torsoPart.staminaRegen)
                 {
                     timer = 0;
                     CurrStamina++;
@@ -108,11 +116,33 @@ public class CharacterBodyCostumization : MonoBehaviour {
             armPart.AttackInput(input);
         }
 
+        if (isSprinting)
+        {
+            timerStaminaRate += Time.deltaTime;
+            if (timerStaminaRate >= legPart.RunningStaminaRate)
+            {
+                CurrStamina -= legPart.RunningStaminaCost;
+                timerStaminaRate = 0;
+            }
+        }
+
     }
 
-    public void ResetRestDelay()
+    public void Jump()
     {
-        checkDelay = true;
+        CurrStamina -= legPart.JumpStaminaCost;
+        StartStaminaRegen();
+    }
+
+    public void StartStaminaRegen()
+    {
+        startRegeningStamina = true;
+        timerRestDelay = 0;
+    }
+
+    private void StopStaminaRegen()
+    {
+        startRegeningStamina = false;
         timerRestDelay = 0;
     }
 
@@ -120,7 +150,36 @@ public class CharacterBodyCostumization : MonoBehaviour {
     {
         this.speed = speed;
         this.isJumping = isJumping;
+        //Started sprinting
+        if (isSprinting && !this.isSprinting)
+        {
+            StopStaminaRegen();
+        }
+        //Stopped Sprinting
+        if (!isSprinting && this.isSprinting)
+        {
+            StartStaminaRegen();
+        }
         this.isSprinting = isSprinting;
     }
 
+
+    void OnTriggerEnter(Collider other)
+    {
+        damageAreaDelay = 0;
+        CurrHp -= other.GetComponent<DamageArea>().damageValue;
+    }
+
+    void OnTriggerStay(Collider other)
+    {
+        if (other.GetComponent<DamageArea>().keepDamaging)
+        {
+            damageAreaDelay += Time.deltaTime;
+            if (damageAreaDelay > 1f / 5f)
+            {
+                damageAreaDelay = 0;
+                CurrHp -= other.GetComponent<DamageArea>().damageValue;
+            }
+        }
+    }
 }

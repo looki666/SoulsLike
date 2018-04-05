@@ -8,7 +8,7 @@ public class TorsoPart : MonoBehaviour {
 
     public int maxHp;
     public int maxStamina;
-    public int staminaRegen;
+    public float staminaRegen;
 
     // Use this for initialization
     void Awake () {

@@ -329,6 +329,7 @@ public class BestKinematicCharacterController : MonoBehaviour
             isJumping = true;
             becameGrounded = false;
             isGrounded = false;
+            bodyParts.Jump();
         }
 
         //If is Jumping add upwards movement
@@ -338,7 +339,7 @@ public class BestKinematicCharacterController : MonoBehaviour
             JumpSpeed = Mathf.Max(0, JumpSpeed - Time.deltaTime * Time.deltaTime * 2000);
         }
 
-        bodyParts.SetMovementState(speed, isJumping, isSprinting);
+        bodyParts.SetMovementState(speed, isJumping, isSprinting && speed.magnitude > 0);
         ContinuosCollisionDetection((platformSpeed + speed) * Time.deltaTime);
     }
 

@@ -62,7 +62,7 @@ public class ArmPart : MonoBehaviour {
             staminaSpent = HeavyStaminaCost;
         }
         body.CurrStamina -= staminaSpent;
-        body.ResetRestDelay();
+        body.StartStaminaRegen();
     }
 
     public void OnAttackHit(Collider enemy)
