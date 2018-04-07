@@ -98,7 +98,6 @@ public class BestKinematicCharacterController : MonoBehaviour
     Vector3 walkingVector;
     Vector3 sideWalkingVector;
 
-    private const string BlockingAnimationState = "Blocking";
     private const string WalkingAnimationState = "Walking";
     private const string SprintingAnimationState = "Sprinting";
 
@@ -144,16 +143,6 @@ public class BestKinematicCharacterController : MonoBehaviour
 
     void Update()
     {
-        //Handle Block animation state.
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            animator.SetBool(BlockingAnimationState, true);
-        }
-        else if (Input.GetKeyUp(KeyCode.Q))
-        {
-            animator.SetBool(BlockingAnimationState, false);
-        }
-
         //Check if is in locked mode.
         if (Input.GetKeyDown(KeyCode.Tab))
         {

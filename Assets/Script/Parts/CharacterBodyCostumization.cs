@@ -93,6 +93,16 @@ public class CharacterBodyCostumization : MonoBehaviour {
             }
         }
 
+        //Handle Block animation state.
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            armPart.Block();
+        }
+        else if (Input.GetKeyUp(KeyCode.Q))
+        {
+            armPart.UnBlock();
+        }
+
         ECombatInputType someInputWasPressed = noInput;
 
         if (Input.GetMouseButtonDown(0))
@@ -169,6 +179,10 @@ public class CharacterBodyCostumization : MonoBehaviour {
         DamageArea damagingArea = other.GetComponent<DamageArea>();
         if(damagingArea != null)
         {
+            if (other.GetComponentInParent<Enemy>().IsAttackBlocked)
+            {
+                return;
+            }
             damageAreaDelay = 0;
             CurrHp -= damagingArea.damageValue;
         }

@@ -7,6 +7,7 @@ public class ArmPart : MonoBehaviour {
     public BasicArmScriptable armData;
     public IFightStyleSolver fightHandler;
     public Animator animator;
+    public Collider blockingCollider;
 
     public int Damage { get { return armData.damage; } set { armData.damage = value; } }
     public int HeavyDamage { get { return armData.heavyDamage; } set { armData.heavyDamage = value; } }
@@ -14,6 +15,9 @@ public class ArmPart : MonoBehaviour {
     public int HeavyStaminaCost { get { return armData.heavyStaminaCost; } set { armData.heavyStaminaCost = value; } }
 
     private CharacterBodyCostumization body;
+
+    private const string BlockingAnimationState = "Blocking";
+
 
     // Use this for initialization
     void Start () {
@@ -78,6 +82,23 @@ public class ArmPart : MonoBehaviour {
 
         //TODO: replace with Enemy having a function that handles taking damage
         enemy.GetComponent<Enemy>().Damage(damageDone);
+    }
+
+    public void Block()
+    {
+        animator.SetBool(BlockingAnimationState, true);
+        blockingCollider.enabled = true;
+    }
+
+    public void BlockHit(Collider attacker)
+    {
+        attacker.GetComponentInParent<Enemy>().IsAttackBlocked = true;
+    }
+
+    public void UnBlock()
+    {
+        animator.SetBool(BlockingAnimationState, false);
+        blockingCollider.enabled = false;
     }
 
 }

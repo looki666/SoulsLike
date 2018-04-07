@@ -12,15 +12,48 @@ public class Enemy : MonoBehaviour {
     [ReadOnly]
     private bool isDead = false;
 
-	// Use this for initialization
-	void Awake () {
-		
-	}
+    private Rigidbody rb;
+    private Collider[] player;
+    private Animator animator;
+
+    [SerializeField]
+    [ReadOnly]
+    private bool isAttackBlocked = false;
+
+    public bool IsAttackBlocked
+    {
+        get
+        {
+            return isAttackBlocked;
+        }
+
+        set
+        {
+            isAttackBlocked = value;
+            if (isAttackBlocked)
+            {
+                animator.SetTrigger("Blocked");
+            }
+        }
+    }
+
+    // Use this for initialization
+    void Awake () {
+        rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+        player = new Collider[1];
+    }
 	
 	// Update is called once per frame
 	void Update () {
-		
-	}
+        Physics.OverlapSphereNonAlloc(rb.position, 3f, player, 1 << 8);
+
+        if (player[0] != null)
+        {
+            animator.SetTrigger("Attack");
+        }
+        player[0] = null;
+    }
 
     public void Damage(int dmg)
     {
