@@ -166,19 +166,28 @@ public class CharacterBodyCostumization : MonoBehaviour {
 
     void OnTriggerEnter(Collider other)
     {
-        damageAreaDelay = 0;
-        CurrHp -= other.GetComponent<DamageArea>().damageValue;
+        DamageArea damagingArea = other.GetComponent<DamageArea>();
+        if(damagingArea != null)
+        {
+            damageAreaDelay = 0;
+            CurrHp -= damagingArea.damageValue;
+        }
+
     }
 
     void OnTriggerStay(Collider other)
     {
-        if (other.GetComponent<DamageArea>().keepDamaging)
+        DamageArea damagingArea = other.GetComponent<DamageArea>();
+        if (damagingArea != null)
         {
-            damageAreaDelay += Time.deltaTime;
-            if (damageAreaDelay > 1f / 5f)
+            if (damagingArea.keepDamaging)
             {
-                damageAreaDelay = 0;
-                CurrHp -= other.GetComponent<DamageArea>().damageValue;
+                damageAreaDelay += Time.deltaTime;
+                if (damageAreaDelay > 1f / 5f)
+                {
+                    damageAreaDelay = 0;
+                    CurrHp -= damagingArea.damageValue;
+                }
             }
         }
     }

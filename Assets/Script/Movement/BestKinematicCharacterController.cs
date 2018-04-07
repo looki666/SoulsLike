@@ -102,6 +102,7 @@ public class BestKinematicCharacterController : MonoBehaviour
     private const string WalkingAnimationState = "Walking";
     private const string SprintingAnimationState = "Sprinting";
 
+    private const int layerMaskCollision = ~((1<<8) | (1 << 13));
     /*
      * Collision handler.
      */
@@ -129,7 +130,10 @@ public class BestKinematicCharacterController : MonoBehaviour
 
         myCamera = GetComponentInChildren<CameraController>();
         bodyParts = GetComponent<CharacterBodyCostumization>();
-        animator = bodyParts.ArmsPart.animator;
+        if (bodyParts.ArmsPart != null)
+        {
+            animator = bodyParts.ArmsPart.animator;
+        }
         rb = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
 
@@ -402,7 +406,7 @@ public class BestKinematicCharacterController : MonoBehaviour
                 DebugExtension.DebugArrow(castStartBackOffsetBot, castDirection * castDistance, startColor, 2f);
             }
             RaycastHit hitInfo;
-           if (Physics.CapsuleCast(castStartBackOffsetTop, castStartBackOffsetBot, col.radius, castDirection, out hitInfo, castDistance, ~(1<<8)))
+           if (Physics.CapsuleCast(castStartBackOffsetTop, castStartBackOffsetBot, col.radius, castDirection, out hitInfo, castDistance, layerMaskCollision))
             {
                 if (hitInfo.collider.isTrigger)
                 {
@@ -450,7 +454,7 @@ public class BestKinematicCharacterController : MonoBehaviour
             Vector3 disp = Vector3.zero;
             if (dePenetrate)
             {
-                int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(rb.position, 1 + 0.1f, nearbyColliders, ~(1 << 8));
+                int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(rb.position, 1 + 0.1f, nearbyColliders, layerMaskCollision);
 
                 if (DEBUG)
                 {
@@ -534,7 +538,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         bool wasGrounded = isGrounded;
         isSlopeSliding = false;
 
-        if (Physics.SphereCast(rb.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + 0.01f, ~(1 << 8)))
+        if (Physics.SphereCast(rb.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + 0.01f, layerMaskCollision))
         {
             if (hitInfo.collider.isTrigger)
             {
