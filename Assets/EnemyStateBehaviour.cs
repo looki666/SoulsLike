@@ -12,7 +12,7 @@ public class EnemyStateBehaviour : StateMachineBehaviour {
         {
             enemy = animator.GetComponent<Enemy>();
         }
-        if (stateInfo.IsName("attack"))
+        if (stateInfo.IsName("Attack"))
         {
             enemy.IsAttackBlocked = false;
         }

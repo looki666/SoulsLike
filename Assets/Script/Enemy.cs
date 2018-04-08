@@ -20,6 +20,8 @@ public class Enemy : MonoBehaviour {
     [ReadOnly]
     private bool isAttackBlocked = false;
 
+    public Transform HpBarAnchor { set; get; }
+
     public bool IsAttackBlocked
     {
         get
@@ -42,6 +44,7 @@ public class Enemy : MonoBehaviour {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
         player = new Collider[1];
+        HpBarAnchor = transform.Find("HpBar");
     }
 	
 	// Update is called once per frame
@@ -50,7 +53,10 @@ public class Enemy : MonoBehaviour {
 
         if (player[0] != null)
         {
-            animator.SetTrigger("Attack");
+            if(animator != null)
+            {
+                animator.SetTrigger("Attack");
+            }
         }
         player[0] = null;
     }

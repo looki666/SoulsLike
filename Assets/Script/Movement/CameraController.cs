@@ -28,7 +28,8 @@ public class CameraController : MonoBehaviour {
         }
         else
         {
-            transform.parent.LookAt(target);
+            Vector3 dirXZ = new Vector3(target.position.x - transform.parent.position.x, 0f, target.position.z - transform.parent.position.z);
+            transform.parent.rotation = Quaternion.LookRotation(dirXZ);
         }
         
     }
@@ -37,35 +38,10 @@ public class CameraController : MonoBehaviour {
     {
         if (this.target != null && target == null)
         {
-            Debug.Log("==== Un-Target ====");
             wasLocked = true;
             mouseLook.x = transform.parent.eulerAngles.y;
         }
         this.target = target;
     }
-
-    private void FixedUpdates()
-    {
-        if (target == null)
-        {
-            Vector2 mouse = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
-            mouse *= 2f;
-            mouseLook += mouse;
-            if (wasLocked)
-            {
-                mouseLook = Vector2.zero;
-                wasLocked = false;
-            }
-
-            transform.localRotation = Quaternion.AngleAxis(Mathf.Clamp(-mouseLook.y, -90, 90), Vector3.right); //up and down
-            parentRb.MoveRotation(Quaternion.AngleAxis(mouseLook.x, transform.parent.up));
-        }else
-        {
-            wasLocked = true;
-            Vector3 dirXZ = new Vector3(target.position.x - transform.parent.position.x, 0f, target.position.z - transform.parent.position.z);
-            parentRb.MoveRotation(Quaternion.LookRotation(dirXZ));
-        }
-    }
-
 
 }
