@@ -32,6 +32,7 @@ public class BestKinematicCharacterController : MonoBehaviour
     private bool isLocked;
     private bool pressedLocking;
 
+    private bool dodge;
     [SerializeField]
     [ReadOnly]
     private bool isDodging;
@@ -119,6 +120,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         isJumping = false;
         isSprinting = false;
         isCrouching = false;
+        dodge = false;
         isDodging = false;
         isLocked = false;
         pressedLocking = false;
@@ -155,7 +157,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         //Dodging input.
         if (Input.GetKeyDown(KeyCode.E))
         {
-            isDodging = true;
+            dodge = true;
         }
 
         //Jump input and is grounded or can do multiple jumps.
@@ -197,7 +199,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         //Crouch
         Crouch(isCrouching);
     }
-
+    float timerDodge = 0f;
     /*
      * Physics Update.
      */
@@ -273,11 +275,24 @@ public class BestKinematicCharacterController : MonoBehaviour
 
         speed = (walkingVector * input.z + sideWalkingVector * input.x);
 
+        if (dodge)
+        {
+            dodge = false;
+            isDodging = true;
+        }
+
+
         //Check speed magnitude.
         if (isDodging)
         {
-            speed *= bodyParts.LegPart.FlashStepSpeed;
-            isDodging = false;
+            timerDodge += Time.deltaTime;
+            //timerDodge starts as 0 and ends at 200
+            speed *= (bodyParts.LegPart.FlashStepSpeed - (timerDodge * timerDodge * 10 * 40));
+            if (timerDodge >= .05f)
+            {
+                isDodging = false;
+                timerDodge = 0f;
+            }
         }
         else if (isSprinting)
         {
@@ -287,7 +302,6 @@ public class BestKinematicCharacterController : MonoBehaviour
         {
             speed *= bodyParts.LegPart.MovementSpeed;
         }
-
 
         //Set animation type for walking/sprinting
         if (speed.magnitude > 0)

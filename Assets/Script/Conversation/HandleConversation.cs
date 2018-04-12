@@ -1,28 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class HandleConversation : MonoBehaviour {
 
     Rigidbody rb;
     Collider[] nearbyNpcs;
-    public Image panel;
-    public Text interactionText;
-    public Text convText;
+    public ManageDialog dialog;
     bool inConversation;
     bool pressedInteract;
-    ConversationData currConversation;
-    int currConversationLine;
 
 
     private void Awake()
     {
-        currConversationLine = 0;
         inConversation = false;
         rb = GetComponent<Rigidbody>();
         nearbyNpcs = new Collider[1];
-        interactionText.enabled = false;
         pressedInteract = false;
     }
 
@@ -37,8 +30,7 @@ public class HandleConversation : MonoBehaviour {
     // Update is called once per frame
     void FixedUpdate()
     {
-
-        int nNpcsNearby = Physics.OverlapSphereNonAlloc(rb.position, 2f, nearbyNpcs, 1 << 11);
+        int nNpcsNearby = Physics.OverlapSphereNonAlloc(rb.position, 5f, nearbyNpcs, 1 << 11);
 
         //If close but not in a conversation
         if (nNpcsNearby == 1 && !inConversation)
@@ -46,10 +38,10 @@ public class HandleConversation : MonoBehaviour {
             //Start conversation
             if (pressedInteract)
             {
-                StartConversation();
+                StartInteraction();
             } else
             {
-                interactionText.enabled = true;
+                dialog.InteractionState = true;
             }
 
         }
@@ -61,55 +53,48 @@ public class HandleConversation : MonoBehaviour {
                 //F press
                 if (pressedInteract)
                 {
-                    NextLineConversation();
+                    NextInteraction();
                 }
 
                 //moving away disables conversation
                 if (nNpcsNearby < 1)
                 {
-                    StopConversation();
+                    StopInteraction();
                 }
             }
 
             //If far away and have prompt to interact, disable
-            if (nNpcsNearby < 1 && interactionText.enabled)
+            if (nNpcsNearby < 1 && dialog.InteractionState)
             {
-                interactionText.enabled = false;
+                dialog.InteractionState = false; ;
             }
         }
     }
 
-    void StartConversation()
+    private void StartInteraction()
     {
-        panel.enabled = true;
+        ConversationData currConversation = nearbyNpcs[0].GetComponent<ConversationData>();
+        dialog.StartDialog(currConversation);
+        pressedInteract = false;
         inConversation = true;
-        interactionText.enabled = false;
-        currConversation = nearbyNpcs[0].GetComponent<ConversationData>();
-        convText.text = currConversation.GetConversation(currConversationLine);
-        pressedInteract = false;
     }
 
-    void NextLineConversation()
+    private void NextInteraction()
     {
-        currConversationLine++;
-        if(currConversationLine < currConversation.GetSizeConversation())
+        bool finished = dialog.NextLineConversation();
+        pressedInteract = false;
+        if (finished)
         {
-            convText.text = currConversation.GetConversation(currConversationLine);
-        } else
-        {
-            StopConversation();
+            inConversation = false;
+            pressedInteract = false;
         }
-        pressedInteract = false;
     }
 
-    void StopConversation()
+    private void StopInteraction()
     {
-        panel.enabled = false;
+        dialog.StopConversation();
         inConversation = false;
-        convText.text = "";
         pressedInteract = false;
-        currConversationLine = 0;
     }
-
 
 }
