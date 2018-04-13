@@ -9,10 +9,12 @@ public class ManageDialog : MonoBehaviour {
     public Image panel;
     public Text interactionText;
     public Text convText;
+    private string[] currParsedText;
     private int tickPosition;
 
     ConversationData currConversation;
     int currConversationLine;
+    float timer;
 
     public bool InteractionState
     {
@@ -22,15 +24,20 @@ public class ManageDialog : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        tickPosition = 0;
         currConversationLine = 0;
+        timer = 0f;
     }
 
     public void StartDialog(ConversationData currConversation)
     {
+        timer = 0f;
+        tickPosition = 0;
         panel.enabled = true;
         InteractionState = false;
         this.currConversation = currConversation;
         convText.text = currConversation.GetConversation(currConversationLine);
+        currParsedText = convText.text.Split(' ');
     }
 
     public bool NextLineConversation()
@@ -40,6 +47,8 @@ public class ManageDialog : MonoBehaviour {
         if (currConversationLine < currConversation.GetSizeConversation())
         {
             convText.text = currConversation.GetConversation(currConversationLine);
+            timer = 0f;
+            tickPosition = 0;
         }
         else
         {
@@ -58,13 +67,23 @@ public class ManageDialog : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-		
-        //once conversation starts
-        //parse line on convText.text in words
-        //time counter
-        //depending on voice speed of character move the tick letter by letter
-        //add a small pause at spaces, commas and dots
-        
 
-	}
+        //once conversation starts
+        if (panel.enabled)
+        {
+            timer += Time.deltaTime;
+            //depending on voice speed of character move the tick letter by letter
+            if (timer >= currConversation.conv.voiceSpeed)
+            {
+                tickPosition++;
+                timer = 0f;
+            }
+
+            //add a small pause at spaces, commas and dots
+
+        }
+
+
+
+    }
 }

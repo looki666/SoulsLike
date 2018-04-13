@@ -8,5 +8,6 @@ public class SOConversation : ScriptableObject
     [TextArea(15, 20)]
     public string text;
     public int voiceOffset;
+    public float voiceSpeed;
     string[] conversationOptions;
 }
