@@ -11,6 +11,7 @@ public class ManageDialog : MonoBehaviour {
     public Text convText;
     private string[] currParsedText;
     private int tickPosition;
+    private AudioClip[] allSoundsDialog;
 
     ConversationData currConversation;
     int currConversationLine;
@@ -38,6 +39,7 @@ public class ManageDialog : MonoBehaviour {
         this.currConversation = currConversation;
         convText.text = currConversation.GetConversation(currConversationLine);
         currParsedText = convText.text.Split(' ');
+        allSoundsDialog = loader.GetDialogSounds(currConversation.conv.voiceOffset);
     }
 
     public bool NextLineConversation()

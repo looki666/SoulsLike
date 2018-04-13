@@ -11,7 +11,7 @@ public class LoadSoundsDialog : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        sounds = Resources.LoadAll("SoundsFX/Conversation/Audio", typeof(AudioClip));
+        sounds = Resources.LoadAll("Conversation/Audio", typeof(AudioClip));
         dialogSounds = new AudioClip[alphSize];
     }
 	
