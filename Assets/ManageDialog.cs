@@ -9,12 +9,16 @@ public class ManageDialog : MonoBehaviour {
     public Image panel;
     public Text interactionText;
     public Text convText;
+    private string currLine;
     private string[] currParsedText;
-    private int tickPosition;
     private AudioClip[] allSoundsDialog;
 
     ConversationData currConversation;
-    int currConversationLine;
+
+    public int tickPosition;
+    public int currConversationLine;
+    public bool conversationAlive;
+
     float timer;
 
     public bool InteractionState
@@ -25,63 +29,120 @@ public class ManageDialog : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        tickPosition = 0;
+        conversationAlive = false;
+        ResetTick();
         currConversationLine = 0;
-        timer = 0f;
     }
 
     public void StartDialog(ConversationData currConversation)
     {
-        timer = 0f;
-        tickPosition = 0;
+        conversationAlive = true;
+
+        //Reset tick for dialog and voice
+        ResetTick();
+
+        //UI prepare
         panel.enabled = true;
         InteractionState = false;
+        
+        //Prepare character
         this.currConversation = currConversation;
-        convText.text = currConversation.GetConversation(currConversationLine);
-        currParsedText = convText.text.Split(' ');
+        HandleCurrentDialogLine();
+
+        //Retrieve sounds of current character
         allSoundsDialog = loader.GetDialogSounds(currConversation.conv.voiceOffset);
     }
 
-    public bool NextLineConversation()
+    public bool NextLineConversation(bool autoFinish)
     {
         bool finishedDialog = false;
+
         currConversationLine++;
+        //If its not the last line move text to following line
         if (currConversationLine < currConversation.GetSizeConversation())
         {
-            convText.text = currConversation.GetConversation(currConversationLine);
-            timer = 0f;
-            tickPosition = 0;
+            HandleCurrentDialogLine();
+            ResetTick();
         }
         else
         {
-            StopConversation();
+            currConversationLine = 0;
             finishedDialog = true;
+            if (autoFinish)
+            {
+                StopConversation();
+            }
         }
         return finishedDialog;
     }
 
     public void StopConversation()
     {
-        panel.enabled = false;
         convText.text = "";
+        panel.enabled = false;
         currConversationLine = 0;
+    }
+
+    private void ResetTick()
+    {
+        timer = 0f;
+        tickPosition = 0;
+    }
+
+    private void HandleCurrentDialogLine()
+    {
+        currLine = currConversation.GetConversation(currConversationLine);
+        currParsedText = currLine.Split(' ');
     }
 
     // Update is called once per frame
     void Update () {
 
         //once conversation starts
-        if (panel.enabled)
+        if (conversationAlive)
         {
             timer += Time.deltaTime;
             //depending on voice speed of character move the tick letter by letter
             if (timer >= currConversation.conv.voiceSpeed)
             {
+                if (tickPosition == 0)
+                {
+                    convText.text = "";
+                }
+                if (tickPosition >= currLine.Length)
+                {
+                    if (NextLineConversation(false)){
+                        conversationAlive = false;
+                        return;
+                    }
+                    else 
+                    {
+                        timer = -1f;
+                        tickPosition = 0;
+                        return;
+                    }
+                }
+
+                char letter = currLine[tickPosition];
+                convText.text += letter;
+
                 tickPosition++;
                 timer = 0f;
+
+                int numberAlphabet = char.ToUpper(letter) - 64;
+                if (numberAlphabet < 0 || numberAlphabet > 24)
+                {
+                    return;
+                }
+
+                if (tickPosition % 4 == 0)
+                {
+                    currConversation.PlayVoice(allSoundsDialog[numberAlphabet]);
+                }
+
             }
 
-            //add a small pause at spaces, commas and dots
+
 
         }
 

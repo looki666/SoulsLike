@@ -81,7 +81,7 @@ public class HandleConversation : MonoBehaviour {
 
     private void NextInteraction()
     {
-        bool finished = dialog.NextLineConversation();
+        bool finished = dialog.NextLineConversation(true);
         pressedInteract = false;
         if (finished)
         {
