@@ -53,7 +53,7 @@ public class ManageDialog : MonoBehaviour {
         allSoundsDialog = loader.GetDialogSounds(currConversation.conv.voiceOffset);
     }
 
-    public bool NextLineConversation(bool autoFinish)
+    public bool NextLineConversation()
     {
         bool finishedDialog = false;
 
@@ -66,12 +66,7 @@ public class ManageDialog : MonoBehaviour {
         }
         else
         {
-            currConversationLine = 0;
             finishedDialog = true;
-            if (autoFinish)
-            {
-                StopConversation();
-            }
         }
         return finishedDialog;
     }
@@ -81,6 +76,7 @@ public class ManageDialog : MonoBehaviour {
         convText.text = "";
         panel.enabled = false;
         currConversationLine = 0;
+        conversationAlive = false;
     }
 
     private void ResetTick()
@@ -111,7 +107,7 @@ public class ManageDialog : MonoBehaviour {
                 }
                 if (tickPosition >= currLine.Length)
                 {
-                    if (NextLineConversation(false)){
+                    if (NextLineConversation()){
                         conversationAlive = false;
                         return;
                     }
@@ -135,7 +131,7 @@ public class ManageDialog : MonoBehaviour {
                     return;
                 }
 
-                if (tickPosition % 4 == 0)
+                if (tickPosition % 3 == 0)
                 {
                     currConversation.PlayVoice(allSoundsDialog[numberAlphabet]);
                 }

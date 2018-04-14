@@ -38,9 +38,11 @@ public class HandleConversation : MonoBehaviour {
             //Start conversation
             if (pressedInteract)
             {
+                pressedInteract = false;
                 StartInteraction();
             } else
             {
+                //Display interaction message
                 dialog.InteractionState = true;
             }
 
@@ -53,6 +55,7 @@ public class HandleConversation : MonoBehaviour {
                 //F press
                 if (pressedInteract)
                 {
+                    pressedInteract = false;
                     NextInteraction();
                 }
 
@@ -75,18 +78,15 @@ public class HandleConversation : MonoBehaviour {
     {
         ConversationData currConversation = nearbyNpcs[0].GetComponent<ConversationData>();
         dialog.StartDialog(currConversation);
-        pressedInteract = false;
         inConversation = true;
     }
 
     private void NextInteraction()
     {
-        bool finished = dialog.NextLineConversation(true);
-        pressedInteract = false;
+        bool finished = dialog.NextLineConversation();
         if (finished)
         {
-            inConversation = false;
-            pressedInteract = false;
+            StopInteraction();
         }
     }
 
@@ -94,7 +94,6 @@ public class HandleConversation : MonoBehaviour {
     {
         dialog.StopConversation();
         inConversation = false;
-        pressedInteract = false;
     }
 
 }
