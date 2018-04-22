@@ -3,8 +3,9 @@
 	Properties
 	{
 		_MainTex("Texture", 2D) = "white" {}
-		_SpecularTex("Specular Map", 2D) = "white" {}
+		_SpecularTex("Specular Map", 2D) = "black" {}
 		_BumpMap("Normal Map", 2D) = "bump" {}
+		_SpecValue("SpecularityValue", Range(0.1, 1)) = 0.5
 		_DarkerValue("DarkerValue", Range(0.15, .5)) = 0.5
 		_CutOff("CutOff", Range(0,1)) = 0
 	}
@@ -21,8 +22,10 @@
 			#pragma fragment frag
 			// make fog work
 			#pragma multi_compile_fog
+			#pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
 
 			#include "UnityCG.cginc"
+			#include "AutoLight.cginc"
 
 			struct appdata
 			{
@@ -36,11 +39,12 @@
 			{
 				float2 uv : TEXCOORD0;
 				UNITY_FOG_COORDS(1)
-					float4 vertex : SV_POSITION;
+				SHADOW_COORDS(2)
+				float4 pos : SV_POSITION;
 				// that transforms from tangent to world space
-				half3 tspace0 : TEXCOORD1; // tangent.x, bitangent.x, normal.x
-				half3 tspace1 : TEXCOORD2; // tangent.y, bitangent.y, normal.y
-				half3 tspace2 : TEXCOORD3; // tangent.z, bitangent.z, normal.z
+				half3 tspace0 : TEXCOORD3; // tangent.x, bitangent.x, normal.x
+				half3 tspace1 : TEXCOORD4; // tangent.y, bitangent.y, normal.y
+				half3 tspace2 : TEXCOORD5; // tangent.z, bitangent.z, normal.z
 			};
 
 			sampler2D _MainTex;
@@ -51,11 +55,12 @@
 			float4 _DarkColor;
 			float _CutOff;
 			float _DarkerValue;
+			float _SpecValue;
 
 			v2f vert(appdata v)
 			{
 				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.pos = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _BumpMap);
 
 				half3 wNormal = UnityObjectToWorldNormal(v.normals);
@@ -68,6 +73,7 @@
 				o.tspace1 = half3(wTangent.y, wBitangent.y, wNormal.y);
 				o.tspace2 = half3(wTangent.z, wBitangent.z, wNormal.z);
 
+				TRANSFER_SHADOW(o);
 				UNITY_TRANSFER_FOG(o,o.vertex);
 				return o;
 			}
@@ -77,7 +83,7 @@
 				fixed4 col = tex2D(_MainTex, i.uv);
 				fixed4 specMap = tex2D(_SpecularTex, i.uv);
 				half3 tnormal = UnpackNormal(tex2D(_BumpMap, i.uv));
-
+				fixed shadow = SHADOW_ATTENUATION(i);
 
 				// transform normal from tangent to world space
 				half3 worldNormal;
@@ -85,7 +91,18 @@
 				worldNormal.y = dot(i.tspace1, tnormal);
 				worldNormal.z = dot(i.tspace2, tnormal);
 
-				float ndotL = max(0, dot(worldNormal, _WorldSpaceLightPos0.xyz));
+				float3 viewDirection = normalize(
+					_WorldSpaceCameraPos - i.pos.xyz);
+
+				float3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
+
+				//Specularity
+				half3 h = normalize(lightDir + viewDirection);
+				float nh = max(0, dot(worldNormal, h));
+				float spec = pow(nh, _SpecValue);
+				half4 specCol = spec * half4(0.7, 0.7, 0.7, 255);
+
+				float ndotL = max(0, dot(worldNormal, lightDir));
 				
 				//Calculate grayscale
 				fixed4 grayVector = fixed4(0.3, 0.59, 0.11, 1);
@@ -94,6 +111,15 @@
 
 				//Decide between normal color or darkened and desaturated version of the color
 				fixed4 baseCol = lerp(col, lerp(col, Intensity, .05) * _DarkerValue, step(ndotL, _CutOff));
+				
+				//Decide between specularColor and black depending on specular cutOff
+				specCol = lerp(specCol, half4(0,0,0,0), step(nh, _SpecValue));
+
+				//Decide between baseColor or casted shadow
+				baseCol = lerp(baseCol, lerp(col, Intensity, .05) * _DarkerValue, step(shadow, 0.7));
+
+				//Apply specular mask
+				baseCol = baseCol + specCol * specMap.r * step(_CutOff, ndotL);
 
 				UNITY_APPLY_FOG(i.fogCoord, baseCol);
 
@@ -101,6 +127,9 @@
 			}
 			ENDCG
 		}
+
+
+		UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
 	}
 		//Fallback "Diffuse"
 }
