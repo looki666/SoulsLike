@@ -5,6 +5,7 @@ using UnityEngine;
 public class World : MonoBehaviour {
 
     public bool startLocked = true;
+    public Vector3 windDirection;
 	// Use this for initialization
 	void Start () {
         if (startLocked)

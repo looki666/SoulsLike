@@ -81,8 +81,6 @@
 				float ndotL = max(0, dot(worldNormal, _WorldSpaceLightPos0.xyz));
 				fixed4 baseCol = lerp(_Color, _DarkColor, step(ndotL, _CutOff));
 
-				baseCol = lerp(_Color, baseCol, _DarkColor.a);
-
 				UNITY_APPLY_FOG(i.fogCoord, baseCol);
 
 				return baseCol;
