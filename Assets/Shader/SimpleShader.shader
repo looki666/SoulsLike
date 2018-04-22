@@ -14,12 +14,14 @@
 		Pass
 	{
 		CGPROGRAM
-#pragma vertex vert
-#pragma fragment frag
+		#pragma vertex vert
+		#pragma fragment frag
 		// make fog work
-#pragma multi_compile_fog
+		#pragma multi_compile_fog
+		#pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
 
-#include "UnityCG.cginc"
+		#include "UnityCG.cginc"
+		#include "AutoLight.cginc"
 
 		struct appdata
 	{
@@ -32,7 +34,8 @@
 	{
 		float2 uv : TEXCOORD0;
 		UNITY_FOG_COORDS(1)
-			float4 vertex : SV_POSITION;
+		SHADOW_COORDS(2)
+		float4 pos : SV_POSITION;
 		float3 normals : NORMAL;
 	};
 
@@ -46,9 +49,10 @@
 	v2f vert(appdata v)
 	{
 		v2f o;
-		o.vertex = UnityObjectToClipPos(v.vertex);
+		o.pos = UnityObjectToClipPos(v.vertex);
 		o.uv = v.uv;
 		o.normals = mul(v.normals, unity_WorldToObject);
+		TRANSFER_SHADOW(o);
 		UNITY_TRANSFER_FOG(o,o.vertex);
 		return o;
 	}
@@ -56,13 +60,18 @@
 	fixed4 frag(v2f i) : SV_Target
 	{
 		float4 ndotL = max(0, dot(i.normals, _WorldSpaceLightPos0.xyz));
+		fixed shadow = SHADOW_ATTENUATION(i);
 
 		fixed4 col = ndotL;
 		fixed4 baseCol = lerp(_Color, _DarkColor, step(ndotL, _CutOff));
+
+		//Decide between baseColor or casted shadow
+		baseCol = lerp(baseCol, _DarkColor, step(shadow, 0.7));
 
 		return baseCol;
 	}
 		ENDCG
 	}
+		UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
 	}
 }
