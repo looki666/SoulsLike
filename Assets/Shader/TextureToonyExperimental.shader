@@ -5,7 +5,7 @@
 		_MainTex("Texture", 2D) = "white" {}
 		_SpecularTex("Specular Map", 2D) = "black" {}
 		_ShadowDispTex("Shadow Outline Tex", 2D) = "bump" {}
-		_ShadowDispMap("Shadow Outline Map", 2D) = "black" {}
+		_ShadowDispMap("Shadow Outline Map", 2D) = "white" {}
 		_DarkerValue("DarkerValue", Range(0.15, .5)) = 0.5
 		_SpecValue("SpeculaCutoff", Range(0.1, 1)) = 0.5
 		_CutOff("CutOff", Range(0, 1)) = 0
