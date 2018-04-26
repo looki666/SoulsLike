@@ -80,8 +80,11 @@ public class ArmPart : MonoBehaviour {
             damageDone = HeavyDamage;
         }
 
-        //TODO: replace with Enemy having a function that handles taking damage
-        enemy.GetComponent<Enemy>().Damage(damageDone);
+        if(enemy.GetComponentInParent<Enemy>() != null)
+        {
+            enemy.GetComponentInParent<Enemy>().Damage(damageDone);
+        }
+
     }
 
     public void Block()

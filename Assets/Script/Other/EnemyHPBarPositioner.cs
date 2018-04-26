@@ -20,17 +20,18 @@ public class EnemyHPBarPositioner : MonoBehaviour {
         canvas = GetComponent<RectTransform>();
         //Get all enemies
         int childs = 0;
+        Vector2 halfwayPivot = new Vector2(0.5f, 0.5f);
         foreach (Transform child in allEnemies)
         {
-            enemies[childs] = child.GetComponent<Enemy>().HpBarAnchor;
-            childs++;
-        }
+            Enemy enemy = child.GetComponent<Enemy>();
+            enemies[childs] = enemy.HpBarAnchor;
 
-        //Create hp bar for each enemy
-        for (int i = 0; i < enemies.Length; i++)
-        {
             GameObject bar = (GameObject)Instantiate(hpPrefab, transform);
-            hpBars[i] = bar.transform;
+            bar.name = enemy.name;
+            hpBars[childs] = bar.transform;
+            bar.GetComponent<RectTransform>().pivot = halfwayPivot;
+            enemy.HpBar = bar.GetComponent<Slider>();
+            childs++;
         }
 
         PositionBars();
@@ -42,7 +43,6 @@ public class EnemyHPBarPositioner : MonoBehaviour {
         {
             hpBars[i].gameObject.SetActive(Vector3.Distance(player.position, enemies[i].position) <= distanceToDisplay);
         }
-
 
     }
 
