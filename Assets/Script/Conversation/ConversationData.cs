@@ -6,27 +6,27 @@ public class ConversationData : MonoBehaviour {
 
     public AudioSource audio;
     public SOConversation conv;
-    string[] parsedConversation;
+    private int timesTalked = 0;
+    public int TimesTalked { get { return timesTalked; } set { timesTalked = Mathf.Min(value, conv.text.Length-1); } }
 
     private void Awake()
     {
         audio = GetComponent<AudioSource>();
-        parsedConversation = conv.text.Split('\n');
     }
 
-    public string GetConversation()
+    public string GetConversation(int group)
     {
-        return conv.text;
+        return conv.text[group];
     }
 
-    public string GetConversation(int line)
+    public string GetConversation(int group, int line)
     {
-        return parsedConversation[line];
+        return conv.text[group].Split('\n')[line];
     }
 
-    public int GetSizeConversation()
+    public int GetSizeConversation(int group)
     {
-        return parsedConversation.Length;
+        return conv.text[group].Split('\n').Length;
     }
 
     public void PlayVoice(AudioClip clip)

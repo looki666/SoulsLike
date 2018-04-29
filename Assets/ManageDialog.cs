@@ -59,7 +59,7 @@ public class ManageDialog : MonoBehaviour {
 
         currConversationLine++;
         //If its not the last line move text to following line
-        if (currConversationLine < currConversation.GetSizeConversation())
+        if (currConversationLine < currConversation.GetSizeConversation(0))
         {
             HandleCurrentDialogLine();
             ResetTick();
@@ -87,7 +87,7 @@ public class ManageDialog : MonoBehaviour {
 
     private void HandleCurrentDialogLine()
     {
-        currLine = currConversation.GetConversation(currConversationLine);
+        currLine = currConversation.GetConversation(0, currConversationLine);
         currParsedText = currLine.Split(' ');
     }
 

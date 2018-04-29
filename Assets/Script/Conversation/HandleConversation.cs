@@ -4,12 +4,13 @@ using UnityEngine;
 
 public class HandleConversation : MonoBehaviour {
 
+    public ManageDialog dialog;
+
     Rigidbody rb;
     Collider[] nearbyNpcs;
-    public ManageDialog dialog;
+    ConversationData currConversation;
     bool inConversation;
     bool pressedInteract;
-
 
     private void Awake()
     {
@@ -76,7 +77,7 @@ public class HandleConversation : MonoBehaviour {
 
     private void StartInteraction()
     {
-        ConversationData currConversation = nearbyNpcs[0].GetComponent<ConversationData>();
+        currConversation = nearbyNpcs[0].GetComponent<ConversationData>();
         dialog.StartDialog(currConversation);
         inConversation = true;
     }
@@ -92,6 +93,7 @@ public class HandleConversation : MonoBehaviour {
 
     private void StopInteraction()
     {
+        currConversation.TimesTalked++;
         dialog.StopConversation();
         inConversation = false;
     }
