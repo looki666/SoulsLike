@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ArmPart : MonoBehaviour {
+public class ArmPart : MonoBehaviour, IPart {
 
     public BasicArmScriptable armData;
     public IFightStyleSolver fightHandler;
@@ -24,7 +24,11 @@ public class ArmPart : MonoBehaviour {
         fightHandler = GetComponent<IFightStyleSolver>();
         animator = GetComponent<Animator>();
         fightHandler.SetAnimator(animator);
-        body = GetComponentInParent<CharacterBodyCostumization>();
+    }
+
+    public void ArmsAddedToBody(CharacterBodyCostumization body)
+    {
+        this.body = body;
     }
 
     public void AttackAbility()
@@ -104,4 +108,13 @@ public class ArmPart : MonoBehaviour {
         blockingCollider.enabled = false;
     }
 
+    public Sprite GetSprite()
+    {
+        return armData.image;
+    }
+
+    public string GetName()
+    {
+        return armData.name;
+    }
 }

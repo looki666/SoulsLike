@@ -9,5 +9,7 @@ public class SOConversation : ScriptableObject
     public string[] text;
     public int voiceOffset;
     public float voiceSpeed;
+    public GameObject[] gifts;
+
     string[] conversationOptions;
 }

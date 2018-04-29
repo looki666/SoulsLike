@@ -2,13 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TorsoPart : MonoBehaviour {
+public class TorsoPart : MonoBehaviour, IPart {
 
     public BasicTorsoScriptable torsoData;
 
     public int maxHp;
     public int maxStamina;
     public float staminaRegen;
+
+    public string GetName()
+    {
+        return torsoData.name;
+    }
+
+    public Sprite GetSprite()
+    {
+        return torsoData.image;
+    }
 
     // Use this for initialization
     void Awake () {

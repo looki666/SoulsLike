@@ -7,7 +7,9 @@ public class CharacterBodyCostumization : MonoBehaviour {
     private ArmPart armPart;
     private TorsoPart torsoPart;
     private LegPart legPart;
+    private Inventory inventory;
     private HandleUIBars uiBars;
+    public NewItemUI uiItem;
 
     private ECombatInputType noInput = ECombatInputType.NONE;
     private Vector3 speed;
@@ -56,6 +58,7 @@ public class CharacterBodyCostumization : MonoBehaviour {
 
     // Use this for initialization
     void Awake () {
+        inventory = GetComponent<Inventory>();
         armPart = GetComponentInChildren<ArmPart>();
         torsoPart = GetComponentInChildren<TorsoPart>();
         legPart = GetComponentInChildren<LegPart>();
@@ -68,6 +71,7 @@ public class CharacterBodyCostumization : MonoBehaviour {
         uiBars.UpdateBarValue(1, currStamina);
         startRegeningStamina = false;
         timerRestDelay = 0;
+        armPart.ArmsAddedToBody(this);
     }
 	
     // Update is called once per frame
@@ -148,6 +152,18 @@ public class CharacterBodyCostumization : MonoBehaviour {
     {
         startRegeningStamina = true;
         timerRestDelay = 0;
+    }
+
+    public void AddItemInventory(GameObject[] newItem)
+    {
+        for (int i = 0; i < newItem.Length; i++)
+        {
+            inventory.AddItem(newItem[i]);
+        }
+
+        IPart part = newItem[0].GetComponent<IPart>();
+        Debug.Log(part.GetName());
+        uiItem.EnableNewItemUI(part.GetSprite(), part.GetName());
     }
 
     private void StopStaminaRegen()

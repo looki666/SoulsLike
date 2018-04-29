@@ -5,6 +5,9 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Part/Arm/BasicArm")]
 public class BasicArmScriptable : ScriptableObject {
 
+    public string name;
+    public Sprite image;
+
     public int damage;
     public int normalStaminaCost;
     public int heavyDamage;

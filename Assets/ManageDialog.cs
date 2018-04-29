@@ -105,18 +105,21 @@ public class ManageDialog : MonoBehaviour {
                 {
                     convText.text = "";
                 }
+                
                 if (tickPosition >= currLine.Length)
                 {
+                    //Auto skip to next line
+                    /*
                     if (NextLineConversation()){
                         conversationAlive = false;
-                        return;
                     }
                     else 
                     {
                         timer = -1f;
                         tickPosition = 0;
-                        return;
-                    }
+                    }*/
+
+                    return;
                 }
 
                 char letter = currLine[tickPosition];

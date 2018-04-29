@@ -11,6 +11,7 @@ public class HandleConversation : MonoBehaviour {
     ConversationData currConversation;
     bool inConversation;
     bool pressedInteract;
+    CharacterBodyCostumization body;
 
     private void Awake()
     {
@@ -18,6 +19,7 @@ public class HandleConversation : MonoBehaviour {
         rb = GetComponent<Rigidbody>();
         nearbyNpcs = new Collider[1];
         pressedInteract = false;
+        body = GetComponent<CharacterBodyCostumization>();
     }
 
     private void Update()
@@ -96,6 +98,11 @@ public class HandleConversation : MonoBehaviour {
         currConversation.TimesTalked++;
         dialog.StopConversation();
         inConversation = false;
+        if(currConversation.GetGifts().Length > 0)
+        {
+            body.AddItemInventory(currConversation.GetGifts());
+        }
+
     }
 
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LegPart : MonoBehaviour {
+public class LegPart : MonoBehaviour, IPart {
 
     public BasicLegScriptable legData;
 
@@ -17,6 +17,16 @@ public class LegPart : MonoBehaviour {
     public int JumpStaminaCost { get { return legData.jumpStaminaCost; } set { legData.jumpStaminaCost = value; } }
     public bool WallRunHorizontal { get { return legData.wallRunHorizontal; } set { legData.wallRunHorizontal = value; } }
     public bool WallRunVertical { get { return legData.wallRunVertical; } set { legData.wallRunVertical = value; } }
+
+    public string GetName()
+    {
+        return legData.name;
+    }
+
+    public Sprite GetSprite()
+    {
+        return legData.image;
+    }
 
     public void MovementAbility()
     {

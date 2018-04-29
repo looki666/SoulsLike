@@ -19,6 +19,11 @@ public class ConversationData : MonoBehaviour {
         return conv.text[group];
     }
 
+    public GameObject[] GetGifts()
+    {
+        return conv.gifts;
+    }
+
     public string GetConversation(int group, int line)
     {
         return conv.text[group].Split('\n')[line];
