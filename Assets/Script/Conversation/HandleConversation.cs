@@ -99,6 +99,7 @@ public class HandleConversation : MonoBehaviour {
         currConversation.TimesTalked++;
         dialog.StopConversation();
         inConversation = false;
+
         GameObject[] gifts = currConversation.GetGifts();
         if (gifts!= null && gifts.Length > 0)
         {

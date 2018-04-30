@@ -8,6 +8,8 @@ public class Inventory : MonoBehaviour {
     [ReadOnly]
     List<GameObject> items;
 
+    public InventoryUI inventoryUI;
+
 	// Use this for initialization
 	void Start () {
 		
@@ -18,9 +20,10 @@ public class Inventory : MonoBehaviour {
 		
 	}
 
-    public void AddItem(GameObject item)
+    public void AddItem(GameObject item, Sprite image, string text)
     {
         items.Add(item);
+        inventoryUI.AddItemEntry(image, text);
     }
 
 }

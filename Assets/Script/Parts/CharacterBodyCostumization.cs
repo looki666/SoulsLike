@@ -156,13 +156,14 @@ public class CharacterBodyCostumization : MonoBehaviour {
 
     public void AddItemInventory(GameObject[] newItem)
     {
+        IPart part;
         for (int i = 0; i < newItem.Length; i++)
         {
-            inventory.AddItem(newItem[i]);
+            part = newItem[i].GetComponent<IPart>();
+            inventory.AddItem(newItem[i], part.GetSprite(), part.GetName());
         }
 
-        IPart part = newItem[0].GetComponent<IPart>();
-        Debug.Log(part.GetName());
+        part = newItem[0].GetComponent<IPart>();
         uiItem.EnableNewItemUI(part.GetSprite(), part.GetName());
     }
 
