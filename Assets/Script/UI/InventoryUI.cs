@@ -34,6 +34,13 @@ public class InventoryUI : MonoBehaviour {
 
         newItemEntry.transform.SetParent(panelContent);
         newItemEntry.transform.localScale = itemEntryPrefab.transform.localScale;
+
+        //TODO: Add a toggle group for the type of item (only 1 leg can be equiped etc)
+
+        newItemEntry.GetComponent<Toggle>().onValueChanged.AddListener(delegate
+        {
+            //TODO: Add action for the toggle press
+        });
     }
 
     public void SwitchUI()

@@ -6,8 +6,8 @@ public class ConversationData : MonoBehaviour {
 
     public AudioSource audio;
     public SOConversation conv;
-    private int timesTalked = 0;
-    public int TimesTalked { get { return timesTalked; } set { timesTalked = Mathf.Min(value, conv.text.Length-1); } }
+    public int timesTalked = 0;
+    public int TimesTalked { get { return timesTalked; } set { timesTalked = value; } }
 
     private void Awake()
     {
@@ -21,7 +21,7 @@ public class ConversationData : MonoBehaviour {
 
     public GameObject[] GetGifts()
     {
-        return conv.gifts;
+        return timesTalked == 0 ? conv.gifts : null;
     }
 
     public string GetConversation(int group, int line)

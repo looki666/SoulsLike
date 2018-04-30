@@ -96,16 +96,15 @@ public class HandleConversation : MonoBehaviour {
 
     private void StopInteraction()
     {
-        currConversation.TimesTalked++;
         dialog.StopConversation();
         inConversation = false;
 
         GameObject[] gifts = currConversation.GetGifts();
         if (gifts!= null && gifts.Length > 0)
         {
-            body.AddItemInventory(currConversation.GetGifts());
+            body.AddItemInventory(gifts);
         }
-
+        currConversation.TimesTalked++;
     }
 
 }
