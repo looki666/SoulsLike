@@ -6,6 +6,7 @@ public class HandleConversation : MonoBehaviour {
 
     public ManageDialog dialog;
 
+    private bool occupied;
     Rigidbody rb;
     Collider[] nearbyNpcs;
     ConversationData currConversation;
@@ -98,7 +99,8 @@ public class HandleConversation : MonoBehaviour {
         currConversation.TimesTalked++;
         dialog.StopConversation();
         inConversation = false;
-        if(currConversation.GetGifts().Length > 0)
+        GameObject[] gifts = currConversation.GetGifts();
+        if (gifts!= null && gifts.Length > 0)
         {
             body.AddItemInventory(currConversation.GetGifts());
         }
