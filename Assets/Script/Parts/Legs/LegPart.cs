@@ -18,6 +18,11 @@ public class LegPart : MonoBehaviour, IPart {
     public bool WallRunHorizontal { get { return legData.wallRunHorizontal; } set { legData.wallRunHorizontal = value; } }
     public bool WallRunVertical { get { return legData.wallRunVertical; } set { legData.wallRunVertical = value; } }
 
+    public void Equip(CharacterBodyCostumization body)
+    {
+        body.LegPart = this;
+    }
+
     public string GetName()
     {
         return legData.name;

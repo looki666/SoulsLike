@@ -32,16 +32,32 @@ public class CharacterBodyCostumization : MonoBehaviour {
     public ArmPart ArmsPart
     {
         get { return armPart; }
-        set { armPart = value; }
+        set {
+            Transform armParent = armPart.transform.parent;
+            armPart.gameObject.SetActive(false);
+            armPart = value;
+            armPart.transform.SetParent(armParent);
+            armPart.gameObject.SetActive(true);
+        }
     }
     public TorsoPart TorsoPart
     {
         get { return torsoPart; }
-        set { torsoPart = value; }
+        set {
+            torsoPart.gameObject.SetActive(false);
+            torsoPart = value;
+            torsoPart.transform.SetParent(transform);
+            torsoPart.gameObject.SetActive(true);
+        }
     }
     public LegPart LegPart {
         get { return legPart; }
-        set { legPart = value; }
+        set {
+            legPart.gameObject.SetActive(false);
+            legPart = value;
+            legPart.transform.SetParent(transform);
+            legPart.gameObject.SetActive(true);
+        }
     }
 
     public int CurrHp

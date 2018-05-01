@@ -108,6 +108,11 @@ public class ArmPart : MonoBehaviour, IPart {
         blockingCollider.enabled = false;
     }
 
+    public void Equip(CharacterBodyCostumization body)
+    {
+        body.ArmsPart = this;
+    }
+
     public Sprite GetSprite()
     {
         return armData.image;

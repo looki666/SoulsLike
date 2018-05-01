@@ -10,6 +10,11 @@ public class TorsoPart : MonoBehaviour, IPart {
     public int maxStamina;
     public float staminaRegen;
 
+    public void Equip(CharacterBodyCostumization body)
+    {
+        body.TorsoPart = this;
+    }
+
     public string GetName()
     {
         return torsoData.name;

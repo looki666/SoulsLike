@@ -8,8 +8,11 @@ public class InventoryUI : MonoBehaviour {
     public GameObject itemEntryPrefab;
     public GameObject panel;
     public GameObject scrollBar;
+    public GameObject equipPanel;
     Image mainPanel;
     Transform panelContent;
+    Inventory inv;
+    public Inventory Inventory { get { return inv; } set { inv = value; } }
 
 	// Use this for initialization
 	void Start () {
@@ -25,7 +28,7 @@ public class InventoryUI : MonoBehaviour {
         }
     }
 
-    public void AddItemEntry(Sprite image, string text)
+    public void AddItemEntry(int id, Sprite image, string text)
     {
         GameObject newItemEntry = Instantiate(itemEntryPrefab);
 
@@ -39,8 +42,13 @@ public class InventoryUI : MonoBehaviour {
 
         newItemEntry.GetComponent<Toggle>().onValueChanged.AddListener(delegate
         {
-            //TODO: Add action for the toggle press
+            inv.Equip(id); 
         });
+    }
+
+    public void FilterByType()
+    {
+
     }
 
     public void SwitchUI()
@@ -48,6 +56,7 @@ public class InventoryUI : MonoBehaviour {
         bool state = !mainPanel.enabled;
         mainPanel.enabled = state;
         panel.SetActive(state);
+        equipPanel.SetActive(state);
         scrollBar.SetActive(state);
     }
 

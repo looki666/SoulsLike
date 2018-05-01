@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public interface IPart  {
 
+    void Equip(CharacterBodyCostumization body);
     Sprite GetSprite();
     string GetName();
 }
