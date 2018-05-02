@@ -11,7 +11,7 @@ public class Inventory : MonoBehaviour {
     CharacterBodyCostumization body;
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
         items = new Dictionary<int, GameObject>();
         instanciatedItems = new Dictionary<int, GameObject>();
         body = GetComponent<CharacterBodyCostumization>();
@@ -29,18 +29,21 @@ public class Inventory : MonoBehaviour {
         inventoryUI.AddItemEntry(item.GetHashCode(), image, text);
     }
 
+    public void SwitchUI()
+    {
+        inventoryUI.SwitchUI();
+    }
+
     public void Equip(int id)
     {
         Debug.Log(id);
         GameObject value;
         if (instanciatedItems.ContainsKey(id))
         {
-            Debug.Log("Is instantiated");
             instanciatedItems.TryGetValue(id, out value);
             value.SetActive(true);
         } else
         {
-            Debug.Log("Is not instantiated");
             items.TryGetValue(id, out value);
             value = Instantiate(value);
             Debug.Log(value.name);

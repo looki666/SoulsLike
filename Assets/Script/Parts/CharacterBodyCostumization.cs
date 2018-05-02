@@ -29,6 +29,8 @@ public class CharacterBodyCostumization : MonoBehaviour {
     [ReadOnly]
     private bool startRegeningStamina;
 
+    public bool CanAttack { get; set; }
+
     public ArmPart ArmsPart
     {
         get { return armPart; }
@@ -78,6 +80,7 @@ public class CharacterBodyCostumization : MonoBehaviour {
         armPart = GetComponentInChildren<ArmPart>();
         torsoPart = GetComponentInChildren<TorsoPart>();
         legPart = GetComponentInChildren<LegPart>();
+        AddItemInventory(new GameObject[3]{ armPart.gameObject, torsoPart.gameObject, legPart.gameObject });
         currHp = torsoPart.maxHp;
         currStamina = torsoPart.maxStamina;
         uiBars = GetComponent<HandleUIBars>();
@@ -88,6 +91,7 @@ public class CharacterBodyCostumization : MonoBehaviour {
         startRegeningStamina = false;
         timerRestDelay = 0;
         armPart.ArmsAddedToBody(this);
+        CanAttack = true;
     }
 	
     // Update is called once per frame
@@ -123,27 +127,38 @@ public class CharacterBodyCostumization : MonoBehaviour {
             armPart.UnBlock();
         }
 
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            CanAttack = !CanAttack;
+            inventory.SwitchUI();
+        }
+
         ECombatInputType someInputWasPressed = noInput;
 
-        if (Input.GetMouseButtonDown(0))
+        if (CanAttack)
         {
-            someInputWasPressed = ECombatInputType.WEAK_ATTACK;
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            if (someInputWasPressed == ECombatInputType.WEAK_ATTACK) {
-                someInputWasPressed = ECombatInputType.BOTH_ATTACKS;
-            } else
+            if (Input.GetMouseButtonDown(0))
             {
-                someInputWasPressed = ECombatInputType.STRONG_ATTACK;
+                someInputWasPressed = ECombatInputType.WEAK_ATTACK;
             }
-        }
 
-        if(someInputWasPressed != ECombatInputType.NONE)
-        {
-            CombatInput input = new CombatInput(speed, isJumping, isSprinting, someInputWasPressed);
-            armPart.AttackInput(input);
+            if (Input.GetMouseButtonDown(1))
+            {
+                if (someInputWasPressed == ECombatInputType.WEAK_ATTACK)
+                {
+                    someInputWasPressed = ECombatInputType.BOTH_ATTACKS;
+                }
+                else
+                {
+                    someInputWasPressed = ECombatInputType.STRONG_ATTACK;
+                }
+            }
+
+            if (someInputWasPressed != ECombatInputType.NONE)
+            {
+                CombatInput input = new CombatInput(speed, isJumping, isSprinting, someInputWasPressed);
+                armPart.AttackInput(input);
+            }
         }
 
         if (isSprinting)

@@ -13,7 +13,7 @@ public class NewItemUI : MonoBehaviour {
     float timer;
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
         timer = 0;
         bar = GetComponent<Image>();
         DisableNewItemUI();

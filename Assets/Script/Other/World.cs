@@ -20,6 +20,12 @@ public class World : MonoBehaviour {
         {
             Cursor.lockState = SwitchCursorLockState();
         }
+
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            Cursor.lockState = SwitchCursorConfinedState();
+        }
+
     }
 
     /*
@@ -30,6 +36,18 @@ public class World : MonoBehaviour {
         if (CursorLockMode.None.Equals(Cursor.lockState))
         {
             return CursorLockMode.Locked;
+        }
+        return CursorLockMode.None;
+    }
+
+    /*
+ * Switch cursor mode between none or screen center.
+ */
+    private CursorLockMode SwitchCursorConfinedState()
+    {
+        if (CursorLockMode.None.Equals(Cursor.lockState))
+        {
+            return CursorLockMode.Confined;
         }
         return CursorLockMode.None;
     }

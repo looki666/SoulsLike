@@ -15,17 +15,14 @@ public class InventoryUI : MonoBehaviour {
     public Inventory Inventory { get { return inv; } set { inv = value; } }
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
         mainPanel = GetComponent<Image>();
         panelContent = panel.transform.GetChild(0);
     }
 	
 	// Update is called once per frame
 	void Update () {
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            SwitchUI();
-        }
+
     }
 
     public void AddItemEntry(int id, Sprite image, string text)
