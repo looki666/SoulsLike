@@ -4,8 +4,21 @@ timeCreated: 18446744011573954816
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
+    100000: //RootNode
+    100002: container_001
+    400000: //RootNode
+    400002: container_001
+    2300000: container_001
+    3300000: container_001
     4300000: container_001
-  externalObjects: {}
+    7400000: Default Take
+    11100000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material_001__AO1_tga
+    second: {fileID: 2100000, guid: 6b84c39a3bec2a3489fc7ca62aedf8ce, type: 2}
   materials:
     importMaterials: 1
     materialName: 3
@@ -60,7 +73,7 @@ ModelImporter:
     normalImportMode: 1
     tangentImportMode: 4
     normalCalculationMode: 0
-  importAnimation: 1
+  importAnimation: 0
   copyAvatar: 0
   humanDescription:
     serializedVersion: 2

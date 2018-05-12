@@ -10,7 +10,7 @@ public class BasicAnimatorController : StateMachineBehaviour {
 	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
         if (armPart == null)
         {
-            armPart = animator.GetComponent<ArmPart>();
+            armPart = animator.GetComponentInParent<ArmPart>();
         }
 
         if(stateInfo.IsName("Punch") || stateInfo.IsName("StrongPunch") || stateInfo.IsName("2Handed"))
@@ -34,7 +34,7 @@ public class BasicAnimatorController : StateMachineBehaviour {
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
         if(armPart == null)
         {
-            armPart = animator.GetComponent<ArmPart>();
+            armPart = animator.GetComponentInParent<ArmPart>();
         }
 
         if (stateInfo.IsName("Punch") || stateInfo.IsName("StrongPunch") || stateInfo.IsName("2Handed"))

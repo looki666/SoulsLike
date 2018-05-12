@@ -6,7 +6,6 @@ public class CameraController : MonoBehaviour {
 
     Vector2 mouseLook;
     public Transform target = null;
-    public bool wasLocked = false;
     Rigidbody parentRb;
 
 	// Use this for initialization
@@ -38,7 +37,6 @@ public class CameraController : MonoBehaviour {
     {
         if (this.target != null && target == null)
         {
-            wasLocked = true;
             mouseLook.x = transform.parent.eulerAngles.y;
         }
         this.target = target;

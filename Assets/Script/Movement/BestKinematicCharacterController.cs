@@ -100,7 +100,9 @@ public class BestKinematicCharacterController : MonoBehaviour
     Vector3 sideWalkingVector;
 
     private const string WalkingAnimationState = "Walking";
+    private const string FightStanceAnimationState = "FightStance";
     private const string SprintingAnimationState = "Sprinting";
+    private const string JumpFallAnimationState = "onAir";
 
     private const int layerMaskCollision = ~((1<<8) | (1 << 13));
     /*
@@ -227,11 +229,13 @@ public class BestKinematicCharacterController : MonoBehaviour
         //Can check here the landing frame.
         if (justLanded)
         {
+            animator.SetBool(JumpFallAnimationState, false);
         }
 
         //Can check here the falling frame.
         if (justFell)
         {
+            animator.SetBool(JumpFallAnimationState, true);
         }
 
         isGrounded = becameGrounded;
@@ -265,13 +269,18 @@ public class BestKinematicCharacterController : MonoBehaviour
             myCamera.LockCameraOnTarget(closestEnemy);
         }
 
+
         if (isLocked)
         {
-            if (DEBUG)
+            float distance = Vector3.Distance(closestEnemy.transform.position, rb.position);
+            if (distance > 5f)
             {
-                Debug.DrawLine(rb.position, closestEnemy.position, Color.red);
+                isLocked = false;
+                closestEnemy = null;
+                myCamera.LockCameraOnTarget(null);
             }
         }
+        animator.SetBool(FightStanceAnimationState, isLocked);
 
         speed = (walkingVector * input.z + sideWalkingVector * input.x);
 
@@ -280,7 +289,6 @@ public class BestKinematicCharacterController : MonoBehaviour
             dodge = false;
             isDodging = true;
         }
-
 
         //Check speed magnitude.
         if (isDodging)

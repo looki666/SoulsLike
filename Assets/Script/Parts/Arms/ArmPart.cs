@@ -22,7 +22,7 @@ public class ArmPart : MonoBehaviour, IPart {
     // Use this for initialization
     void Start () {
         fightHandler = GetComponent<IFightStyleSolver>();
-        animator = GetComponent<Animator>();
+        animator = GetComponentInChildren<Animator>();
         fightHandler.SetAnimator(animator);
     }
 
