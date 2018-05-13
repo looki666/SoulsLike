@@ -8,6 +8,9 @@ public class ArmPart : MonoBehaviour, IPart {
     public IFightStyleSolver fightHandler;
     public Animator animator;
     public Collider blockingCollider;
+    public CameraShake shake;
+    public Collider lHand;
+    public Collider rHand;
 
     public int Damage { get { return armData.damage; } set { armData.damage = value; } }
     public int HeavyDamage { get { return armData.heavyDamage; } set { armData.heavyDamage = value; } }
@@ -39,6 +42,8 @@ public class ArmPart : MonoBehaviour, IPart {
     public void AttackInput(CombatInput input)
     {
         fightHandler.ReceiveInput(input);
+        lHand.enabled = true;
+        rHand.enabled = true;
     }
 
     public void StartedNewAttack(ECombatInputType attack)
@@ -84,9 +89,13 @@ public class ArmPart : MonoBehaviour, IPart {
             damageDone = HeavyDamage;
         }
 
-        if(enemy.GetComponentInParent<Enemy>() != null)
+        Enemy enemyCollided = enemy.GetComponentInParent<Enemy>();
+        if (enemyCollided != null)
         {
-            enemy.GetComponentInParent<Enemy>().Damage(damageDone);
+            enemyCollided.Damage(damageDone);
+            shake.Shake(0.1f, 0.15f);
+            lHand.enabled = false;
+            rHand.enabled = false;
         }
 
     }
