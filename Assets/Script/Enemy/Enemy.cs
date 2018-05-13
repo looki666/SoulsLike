@@ -102,6 +102,7 @@ public class Enemy : MonoBehaviour {
     public void Damage(int dmg)
     {
         CurrHp -= dmg;
+        animator.SetTrigger("Damaged");
     }
 
     void OnTriggerEnter(Collider other)
