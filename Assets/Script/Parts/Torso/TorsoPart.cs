@@ -36,4 +36,9 @@ public class TorsoPart : MonoBehaviour, IPart {
 	void Update () {
 		
 	}
+
+    PartType IPart.GetType()
+    {
+        return PartType.Torso;
+    }
 }

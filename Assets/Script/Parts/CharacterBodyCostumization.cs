@@ -9,6 +9,7 @@ public class CharacterBodyCostumization : MonoBehaviour {
     private LegPart legPart;
     private Inventory inventory;
     private HandleUIBars uiBars;
+    private CameraController myCamera;
     public NewItemUI uiItem;
 
     private ECombatInputType noInput = ECombatInputType.NONE;
@@ -76,11 +77,12 @@ public class CharacterBodyCostumization : MonoBehaviour {
 
     // Use this for initialization
     void Awake () {
+        myCamera = GetComponentInChildren<CameraController>();
         inventory = GetComponent<Inventory>();
         armPart = GetComponentInChildren<ArmPart>();
         torsoPart = GetComponentInChildren<TorsoPart>();
         legPart = GetComponentInChildren<LegPart>();
-        AddItemInventory(new GameObject[3]{ armPart.gameObject, torsoPart.gameObject, legPart.gameObject });
+        AddInitialItems(new GameObject[3]{ armPart.gameObject, torsoPart.gameObject, legPart.gameObject });
         currHp = torsoPart.maxHp;
         currStamina = torsoPart.maxStamina;
         uiBars = GetComponent<HandleUIBars>();
@@ -130,7 +132,8 @@ public class CharacterBodyCostumization : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.I))
         {
             CanAttack = !CanAttack;
-            inventory.SwitchUI();
+            bool ui = inventory.SwitchUI();
+            myCamera.UseMouseLook = !ui;
         }
 
         ECombatInputType someInputWasPressed = noInput;
@@ -185,13 +188,25 @@ public class CharacterBodyCostumization : MonoBehaviour {
         timerRestDelay = 0;
     }
 
+    private void AddInitialItems(GameObject[] newItem)
+    {
+        inventory.SetInitialObjects(newItem);
+
+        IPart part;
+        for (int i = 0; i < newItem.Length; i++)
+        {
+            part = newItem[i].GetComponent<IPart>();
+            inventory.AddItemAndEquip(newItem[i], part.GetSprite(), part.GetName(), part.GetType());
+        }
+    }
+
     public void AddItemInventory(GameObject[] newItem)
     {
         IPart part;
         for (int i = 0; i < newItem.Length; i++)
         {
             part = newItem[i].GetComponent<IPart>();
-            inventory.AddItem(newItem[i], part.GetSprite(), part.GetName());
+            inventory.AddItem(newItem[i], part.GetSprite(), part.GetName(), part.GetType());
         }
 
         part = newItem[0].GetComponent<IPart>();

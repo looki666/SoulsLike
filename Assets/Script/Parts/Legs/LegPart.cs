@@ -48,4 +48,9 @@ public class LegPart : MonoBehaviour, IPart {
 	void Update () {
 		
 	}
+
+    PartType IPart.GetType()
+    {
+        return PartType.Legs;
+    }
 }

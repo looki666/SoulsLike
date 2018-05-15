@@ -23,15 +23,30 @@ public class Inventory : MonoBehaviour {
 		
 	}
 
-    public void AddItem(GameObject item, Sprite image, string text)
+    public void AddItem(GameObject item, Sprite image, string text, PartType partType)
     {
         items.Add(item.GetHashCode(), item);
-        inventoryUI.AddItemEntry(item.GetHashCode(), image, text);
+        inventoryUI.AddItemEntry(item.GetHashCode(), image, text, partType);
     }
 
-    public void SwitchUI()
+    public void AddItemAndEquip(GameObject item, Sprite image, string text, PartType partType)
     {
-        inventoryUI.SwitchUI();
+        items.Add(item.GetHashCode(), item);
+        inventoryUI.AddItemEntry(item.GetHashCode(), image, text, true, partType);
+        Equip(item.GetHashCode());
+    }
+
+    public void SetInitialObjects(GameObject[] objects)
+    {
+        for (int i = 0; i < objects.Length; i++)
+        {
+            instanciatedItems.Add(objects[i].GetHashCode(), objects[i]);
+        }
+    }
+
+    public bool SwitchUI()
+    {
+        return inventoryUI.SwitchUI();
     }
 
     public void Equip(int id)

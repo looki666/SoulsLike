@@ -7,15 +7,17 @@ public class CameraController : MonoBehaviour {
     Vector2 mouseLook;
     public Transform target = null;
     Rigidbody parentRb;
+    public bool UseMouseLook { get; set; }
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
         parentRb = GetComponentInParent<Rigidbody>();
+        UseMouseLook = true;
     }
 	
 	// Update is called once per frame
 	void Update () {
-        if (target == null)
+        if (target == null && UseMouseLook)
         {
             Vector2 mouse = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
             mouse *= 2f;
@@ -25,7 +27,7 @@ public class CameraController : MonoBehaviour {
             Vector3 eulerRot = new Vector3(0f, mouseLook.x, 0f);
             transform.parent.localEulerAngles = eulerRot;
         }
-        else
+        else if(target != null)
         {
             Vector3 dirXZ = new Vector3(target.position.x - transform.parent.position.x, 0f, target.position.z - transform.parent.position.z);
             transform.parent.rotation = Quaternion.LookRotation(dirXZ);

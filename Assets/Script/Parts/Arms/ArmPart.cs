@@ -131,4 +131,9 @@ public class ArmPart : MonoBehaviour, IPart {
     {
         return armData.name;
     }
+
+    PartType IPart.GetType()
+    {
+        return PartType.Arms;
+    }
 }

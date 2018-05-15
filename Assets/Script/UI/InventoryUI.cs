@@ -13,11 +13,23 @@ public class InventoryUI : MonoBehaviour {
     Transform panelContent;
     Inventory inv;
     public Inventory Inventory { get { return inv; } set { inv = value; } }
+    private ToggleGroup[] toggleGroup;
 
 	// Use this for initialization
 	void Awake () {
         mainPanel = GetComponent<Image>();
         panelContent = panel.transform.GetChild(0);
+
+        int partTypeNumber = 3;
+        toggleGroup = new ToggleGroup[partTypeNumber];
+
+        //Instantiating empty objects just to hold the toggleGroup component... feels dirty
+        for (int i = 0; i < partTypeNumber; i++)
+        {
+            GameObject group = new GameObject();
+            toggleGroup[i] = group.AddComponent<ToggleGroup>();
+        }
+
     }
 	
 	// Update is called once per frame
@@ -25,7 +37,12 @@ public class InventoryUI : MonoBehaviour {
 
     }
 
-    public void AddItemEntry(int id, Sprite image, string text)
+    public void AddItemEntry(int id, Sprite image, string text, PartType partType)
+    {
+        AddItemEntry(id, image, text, false, partType);
+    }
+
+    public void AddItemEntry(int id, Sprite image, string text, bool equiped, PartType partType)
     {
         GameObject newItemEntry = Instantiate(itemEntryPrefab);
 
@@ -36,11 +53,18 @@ public class InventoryUI : MonoBehaviour {
         newItemEntry.transform.localScale = itemEntryPrefab.transform.localScale;
 
         //TODO: Add a toggle group for the type of item (only 1 leg can be equiped etc)
-
-        newItemEntry.GetComponent<Toggle>().onValueChanged.AddListener(delegate
+        Toggle toggle = newItemEntry.GetComponent<Toggle>();
+        toggle.onValueChanged.AddListener(delegate
         {
-            inv.Equip(id); 
+            inv.Equip(id);
         });
+
+        toggle.group = toggleGroup[(int)partType];
+
+        if (equiped)
+        {
+            newItemEntry.GetComponent<Toggle>().isOn = true;
+        }
     }
 
     public void FilterByType()
@@ -48,13 +72,15 @@ public class InventoryUI : MonoBehaviour {
 
     }
 
-    public void SwitchUI()
+    public bool SwitchUI()
     {
         bool state = !mainPanel.enabled;
         mainPanel.enabled = state;
         panel.SetActive(state);
         equipPanel.SetActive(state);
         scrollBar.SetActive(state);
+
+        return state;
     }
 
 }
