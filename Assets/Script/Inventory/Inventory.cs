@@ -51,7 +51,7 @@ public class Inventory : MonoBehaviour {
 
     public void Equip(int id)
     {
-        Debug.Log(id);
+
         GameObject value;
         if (instanciatedItems.ContainsKey(id))
         {
