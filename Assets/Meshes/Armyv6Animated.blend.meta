@@ -276,7 +276,23 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.26813188
+        functionName: SpendStamina
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 1c771b765e9675d4fbae1cc0d6b0a544,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.17995445
+        functionName: EnableStateArm
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 1c771b765e9675d4fbae1cc0d6b0a544,
+          type: 3}
+        floatParameter: 0
+        intParameter: 1
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -332,7 +348,23 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.2747253
+        functionName: SpendStamina
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 1c771b765e9675d4fbae1cc0d6b0a544,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.2118451
+        functionName: EnableStateArm
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 1c771b765e9675d4fbae1cc0d6b0a544,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -360,7 +392,23 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.5516484
+        functionName: SpendStamina
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 1c771b765e9675d4fbae1cc0d6b0a544,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.48974943
+        functionName: EnableStateArm
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: 1c771b765e9675d4fbae1cc0d6b0a544,
+          type: 3}
+        floatParameter: 0
+        intParameter: 1
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}

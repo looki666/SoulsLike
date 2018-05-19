@@ -66,7 +66,6 @@ public class BestKinematicCharacterController : MonoBehaviour
 
     Vector3 input;
 
-    Vector3 boxColliderDimensions;
     RaycastHit hit;
     Collider[] nearbyEnemies;
     Transform closestEnemy;
@@ -94,8 +93,6 @@ public class BestKinematicCharacterController : MonoBehaviour
 
         closestEnemy = null;
         nearbyEnemies = new Collider[5];
-
-        boxColliderDimensions = new Vector3(2 / 3f, 1f, 2 / 3f);
 
         myCamera = GetComponentInChildren<CameraController>();
         bodyParts = GetComponent<CharacterBodyCostumization>();

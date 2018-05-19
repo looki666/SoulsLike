@@ -39,6 +39,8 @@ public class BasicAnimatorController : StateMachineBehaviour {
 
         if (stateInfo.IsName("Punch") || stateInfo.IsName("StrongPunch") || stateInfo.IsName("2Handed"))
         {
+            armPart.ArmColliders(false, 0);
+            armPart.ArmColliders(false, 1);
             armPart.StartedNewAttack(ECombatInputType.NONE);
             //fightSolver.HandleInput();
         }

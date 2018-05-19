@@ -4,16 +4,26 @@ using UnityEngine;
 
 public class KinematicMotor : MonoBehaviour {
 
+    /*
+     * Components
+     */
     Rigidbody rb;
     CapsuleCollider col;
 
-    public bool DEBUG = false;
+    /*
+     * Settings for Collision
+     */
     public bool dePenetrate = false;
     public bool moveEvenIfFailedCollision = false;
 
     public int LayerMaskCollision { get; set; }
     public float groundingAngle = 0.5f;
 
+    Collider[] nearbyColliders;
+
+    /*
+     * Grounding variables
+     */
     [SerializeField]
     [ReadOnly]
     private bool isGrounded;
@@ -24,8 +34,8 @@ public class KinematicMotor : MonoBehaviour {
 
     public bool Jump { get; set; }
     public bool IsJumping { get; set; }
+    float currentJumpNumber;
 
-    Collider[] nearbyColliders;
     /*
      * Collision handler.
      */
@@ -34,26 +44,22 @@ public class KinematicMotor : MonoBehaviour {
     float backstepOffset = .001f;
     float minVelocityBreak = .001f;
 
-
     /**
      * Variables that handle falling movement.
      */
-    const float ACCEL = 0.5f;
     const float GRAVITY = 9.8f;
     public float fallSpeed = 1.5f;
     public float fallSpeedIncrementer = 0.1f;
     public float JumpSpeed { get; set; }
 
-    private Vector3 movementSpeed;
 
     [SerializeField]
     [ReadOnly]
     float gravitySpeed;
+    private Vector3 movementSpeed;
 
     Vector3 walkingVector;
     Vector3 sideWalkingVector;
-
-    float currentJumpNumber = 0;
 
 
     // Use this for initialization
@@ -139,12 +145,6 @@ public class KinematicMotor : MonoBehaviour {
             Vector3 castStartBackOffsetTop = castStartBackOffset + transform.up * offSetCapsule;
             Vector3 castStartBackOffsetBot = castStartBackOffset - transform.up * offSetCapsule;
 
-            if (DEBUG)
-            {
-                startColor.r += 0.2f;
-                DebugExtension.DebugArrow(castStartBackOffsetTop, castDirection * castDistance, startColor, 2f);
-                DebugExtension.DebugArrow(castStartBackOffsetBot, castDirection * castDistance, startColor, 2f);
-            }
             RaycastHit hitInfo;
             if (Physics.CapsuleCast(castStartBackOffsetTop, castStartBackOffsetBot, col.radius, castDirection, out hitInfo, castDistance, LayerMaskCollision))
             {
@@ -156,21 +156,10 @@ public class KinematicMotor : MonoBehaviour {
                 origin = CastCenterOnCollision(castStartBackOffset, castDirection, hitInfo.distance);
                 origin += (hitInfo.normal * surfaceOffset);
 
-                if (DEBUG)
-                {
-                    Debug.DrawRay(hitInfo.point, hitInfo.normal, Color.cyan, 2f);
-                    DebugExtension.DebugArrow(origin, movementSpeed, Color.black, 2f);
-                }
-
                 float remainingDistance = Mathf.Max(0, castDistance - Vector3.Distance(prevOrigin, origin));
 
                 Vector3 remainingSpeed = castDirection * remainingDistance;
                 movementSpeed = remainingSpeed - Vector3.Project(remainingSpeed, hitInfo.normal);
-
-                if (DEBUG)
-                {
-                    DebugExtension.DebugArrow(origin, movementSpeed, Color.white, 2f);
-                }
 
                 if (movementSpeed.magnitude <= minVelocityBreak) break;
             }
@@ -195,18 +184,6 @@ public class KinematicMotor : MonoBehaviour {
             if (dePenetrate)
             {
                 int numbOfNearbyCols = Physics.OverlapSphereNonAlloc(rb.position, 1 + 0.1f, nearbyColliders, LayerMaskCollision);
-
-                if (DEBUG)
-                {
-                    if (numbOfNearbyCols > 0)
-                    {
-                        DebugExtension.DebugWireSphere(rb.position, Color.green, 1 + 0.1f);
-                    }
-                    else
-                    {
-                        DebugExtension.DebugWireSphere(rb.position, Color.red, 1 + 0.1f);
-                    }
-                }
                 disp = DePenetrateCollisions(ref movementSpeed, numbOfNearbyCols);
             }
 
