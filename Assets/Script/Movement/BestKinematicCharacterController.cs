@@ -79,6 +79,8 @@ public class BestKinematicCharacterController : MonoBehaviour
 
     float timerDodge = 0f;
 
+    private Vector3 originalColliderCenter;
+
     // Use this for initialization
     void Start()
     {
@@ -102,6 +104,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         }
         rb = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
+        originalColliderCenter = col.center;
 
         kinMotor = GetComponent<KinematicMotor>();
         kinMotor.LayerMaskCollision = layerMaskCollision;
@@ -315,7 +318,7 @@ public class BestKinematicCharacterController : MonoBehaviour
         else
         {
             col.height = 2f;
-            col.center = Vector3.zero;
+            col.center = originalColliderCenter;
         }
     }
 

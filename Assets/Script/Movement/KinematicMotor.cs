@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 
 public class KinematicMotor : MonoBehaviour {
@@ -56,10 +58,12 @@ public class KinematicMotor : MonoBehaviour {
     [SerializeField]
     [ReadOnly]
     float gravitySpeed;
-    private Vector3 movementSpeed;
+    public Vector3 movementSpeed;
 
     Vector3 walkingVector;
     Vector3 sideWalkingVector;
+
+    private float raycastOffset = 0.2f;
 
 
     // Use this for initialization
@@ -85,19 +89,23 @@ public class KinematicMotor : MonoBehaviour {
         sideWalkingVector = transform.right;
         Vector3 platformSpeed = Vector3.zero;
 
+        //Check grounding.
+        RaycastHit groundInfo;
+
+        isGrounded = CheckGrounding(out groundInfo);
+        Debug.Log(gameObject.name + "  "+ isGrounded);
+        if (isGrounded)
+        {
+            movementSpeed.y = CalculateFallingSpeedRemainder(groundInfo);
+            platformSpeed = AddSpeedFromPlatform(groundInfo.collider);
+            GetWalkingVector(groundInfo, out walkingVector, out sideWalkingVector);
+        }
+
         //If not grounded add falling speed
         if (!isGrounded)
         {
             gravitySpeed += fallSpeedIncrementer;
-            movementSpeed.y -= gravitySpeed;
-        }
-
-        //Check grounding.
-        RaycastHit groundInfo;
-        if (isGrounded = CheckGrounding(out groundInfo))
-        {
-            platformSpeed = AddSpeedFromPlatform(groundInfo.collider);
-            GetWalkingVector(groundInfo, out walkingVector, out sideWalkingVector);
+            movementSpeed.y = -gravitySpeed;
         }
 
         //If pressed jump, set variables for behaviour
@@ -115,7 +123,56 @@ public class KinematicMotor : MonoBehaviour {
             JumpSpeed = Mathf.Max(0, JumpSpeed - Time.deltaTime * Time.deltaTime * 2000);
         }
 
+        //rb.MovePosition(rb.position + movementSpeed * Time.deltaTime);
         ContinuosCollisionDetection((platformSpeed + movementSpeed) * Time.deltaTime);
+    }
+
+    /**
+    * Check if Character is grounded by spherecasting the ground.
+    */
+    private bool CheckGrounding(out RaycastHit hitInfo)
+    {
+        float gravSpeed = raycastOffset + (gravitySpeed + fallSpeedIncrementer) * Time.deltaTime;
+        Vector3 position = rb.position + new Vector3(0, raycastOffset, 0);
+
+        DebugExtension.DebugArrow(position, -transform.up * gravSpeed);
+
+        Boolean hitGround = Physics.Raycast(position, -transform.up,
+            out hitInfo, gravSpeed, 1 | (1 << 10) );
+
+        if (hitGround)
+        {
+            Debug.Log(gameObject.name + "   " + hitInfo.collider.name + " " + hitInfo.distance);
+            if (hitInfo.collider.isTrigger)
+            {
+                return false;
+            }
+            if (Vector3.Dot(hitInfo.normal, Vector3.up) > groundingAngle)
+            {
+                gravitySpeed = GRAVITY * fallSpeed;
+                currentJumpNumber = 0;
+                IsJumping = false;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * In case the character is still not close to the ground, but the next frame would move him beyond the ground,
+     * get speed to get close to the ground.
+     */
+    private float CalculateFallingSpeedRemainder(RaycastHit hitInfo)
+    {
+        float remainedFallingSpeed = 0f;
+        float gravSpeed = raycastOffset + (gravitySpeed + fallSpeedIncrementer) * Time.deltaTime;
+
+        if (hitInfo.distance < gravSpeed && hitInfo.distance > raycastOffset)
+        {
+            remainedFallingSpeed = -(hitInfo.distance - raycastOffset) / Time.deltaTime;
+        }
+
+        return remainedFallingSpeed;
     }
 
     /**
@@ -187,7 +244,6 @@ public class KinematicMotor : MonoBehaviour {
                 disp = DePenetrateCollisions(ref movementSpeed, numbOfNearbyCols);
             }
 
-
             rb.MovePosition(origin + disp);
         }
 
@@ -224,30 +280,6 @@ public class KinematicMotor : MonoBehaviour {
         }
 
         return platformSpeed;
-    }
-
-
-    /**
-    * Check if Character is grounded by spherecasting the ground.
-    */
-    private bool CheckGrounding(out RaycastHit hitInfo)
-    {
-
-        if (Physics.SphereCast(rb.position, 0.5f, -transform.up, out hitInfo, col.height / 4 + 0.01f, LayerMaskCollision))
-        {
-            if (hitInfo.collider.isTrigger)
-            {
-                return false;
-            }
-            if (Vector3.Dot(hitInfo.normal, Vector3.up) > groundingAngle)
-            {
-                currentJumpNumber = 0;
-                IsJumping = false;
-                return true;
-            }
-
-        }
-        return false;
     }
 
     /*

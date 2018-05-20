@@ -25,8 +25,9 @@ public class Enemy : MonoBehaviour {
     private bool isDead = false;
 
     private Rigidbody rb;
-    private Collider[] player;
+    public Collider[] player;
     private Animator animator;
+    private KinematicMotor kinMotor;
 
     [SerializeField]
     [ReadOnly]
@@ -36,6 +37,8 @@ public class Enemy : MonoBehaviour {
     public Transform HpBarAnchor { get { return hpBarAnchor; } set { hpBarAnchor = value; } }
     private Slider hpBar;
     public Slider HpBar { set { hpBar = value; } }
+
+    private const int layerMaskCollision = ~((1 << 9) | (1 << 14));
 
     public int CurrHp
     {
@@ -61,18 +64,20 @@ public class Enemy : MonoBehaviour {
     }
 
     // Use this for initialization
-    void Awake () {
+    void Start() {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
         player = new Collider[1];
         startPos = transform.position;
+        kinMotor = GetComponent<KinematicMotor>();
+        kinMotor.LayerMaskCollision = layerMaskCollision;
     }
 	
 	// Update is called once per frame
 	void Update () {
 
         //Has no target, try and find new target
-        if (player[0] != null)
+        if (player[0] == null)
         {
             Physics.OverlapSphereNonAlloc(rb.position, aggroRange, player, 1 << 8);
         }
@@ -80,19 +85,25 @@ public class Enemy : MonoBehaviour {
         //Got a target
         if (player[0] != null)
         {
-            //Close enough to attack
-            if (Vector3.Distance(player[0].transform.position, rb.position) <= attackRange)
-            {
-                if (animator != null)
-                {
-                    animator.SetTrigger("Attack");
-                }
-            }
-
             //Outside of range, reset target
             if (Vector3.Distance(player[0].transform.position, rb.position) > chaseRange)
             {
                 player[0] = null;
+            }
+            else
+            {
+                Debug.Log("Chasing");
+                kinMotor.Move((player[0].transform.position - rb.position));
+
+                //Close enough to attack
+                if (Vector3.Distance(player[0].transform.position, rb.position) <= attackRange)
+                {
+                    if (animator != null)
+                    {
+                        animator.SetTrigger("Attack");
+                    }
+                }
+
             }
 
         }
@@ -103,12 +114,6 @@ public class Enemy : MonoBehaviour {
     {
         CurrHp -= dmg;
         animator.SetTrigger("Damaged");
-    }
-
-    void OnTriggerEnter(Collider other)
-    {
-        Debug.Log(other.name);
-
     }
 
     void OnDrawGizmosSelected()
