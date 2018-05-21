@@ -35,45 +35,49 @@ public class HandleConversation : MonoBehaviour {
     void FixedUpdate()
     {
         int nNpcsNearby = Physics.OverlapSphereNonAlloc(rb.position, 5f, nearbyNpcs, 1 << 11);
-
-        //If close but not in a conversation
-        if (nNpcsNearby == 1 && !inConversation)
+        if (dialog != null)
         {
-            //Start conversation
-            if (pressedInteract)
+            //If close but not in a conversation
+            if (nNpcsNearby == 1 && !inConversation)
             {
-                pressedInteract = false;
-                StartInteraction();
-            } else
-            {
-                //Display interaction message
-                dialog.InteractionState = true;
-            }
-
-        }
-        else
-        {
-            //If in a conversation
-            if (inConversation)
-            {
-                //F press
+                //Start conversation
                 if (pressedInteract)
                 {
                     pressedInteract = false;
-                    NextInteraction();
+                    StartInteraction();
                 }
-
-                //moving away disables conversation
-                if (nNpcsNearby < 1)
+                else
                 {
-                    StopInteraction();
+                    //Display interaction message
+                    dialog.InteractionState = true;
                 }
-            }
 
-            //If far away and have prompt to interact, disable
-            if (nNpcsNearby < 1 && dialog.InteractionState)
+            }
+            else
             {
-                dialog.InteractionState = false; ;
+                //If in a conversation
+                if (inConversation)
+                {
+                    //F press
+                    if (pressedInteract)
+                    {
+                        pressedInteract = false;
+                        NextInteraction();
+                    }
+
+                    //moving away disables conversation
+                    if (nNpcsNearby < 1)
+                    {
+                        StopInteraction();
+                    }
+                }
+
+                //If far away and have prompt to interact, disable
+                if (nNpcsNearby < 1 && dialog.InteractionState)
+                {
+                    dialog.InteractionState = false;
+                    ;
+                }
             }
         }
     }

@@ -15,7 +15,10 @@ public class Inventory : MonoBehaviour {
         items = new Dictionary<int, GameObject>();
         instanciatedItems = new Dictionary<int, GameObject>();
         body = GetComponent<CharacterBodyCostumization>();
-        inventoryUI.Inventory = this;
+	    if (inventoryUI != null)
+	    {
+	        inventoryUI.Inventory = this;
+        }
     }
 	
 	// Update is called once per frame
@@ -32,7 +35,11 @@ public class Inventory : MonoBehaviour {
     public void AddItemAndEquip(GameObject item, Sprite image, string text, PartType partType)
     {
         items.Add(item.GetHashCode(), item);
-        inventoryUI.AddItemEntry(item.GetHashCode(), image, text, true, partType);
+        if (inventoryUI != null)
+        {
+            inventoryUI.AddItemEntry(item.GetHashCode(), image, text, true, partType);
+        }
+
         Equip(item.GetHashCode());
     }
 
@@ -46,7 +53,14 @@ public class Inventory : MonoBehaviour {
 
     public bool SwitchUI()
     {
-        return inventoryUI.SwitchUI();
+        if (inventoryUI != null)
+        {
+            return inventoryUI.SwitchUI();
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public void Equip(int id)

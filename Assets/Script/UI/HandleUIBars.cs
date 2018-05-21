@@ -21,10 +21,14 @@ public class HandleUIBars : MonoBehaviour {
 
     public void UpdateBarMaxValue(int index, int max)
     {
-        size.x = max*2;
-        size.y = rectTransform[index].sizeDelta.y;
-        rectTransform[index].sizeDelta = size;
-        sliders[index].maxValue = max;
+        if (rectTransform[index] != null)
+        {
+            size.x = max * 2;
+            size.y = rectTransform[index].sizeDelta.y;
+            rectTransform[index].sizeDelta = size;
+            sliders[index].maxValue = max;
+        }
+
     }
 
     public void UpdateBarValue(int index, int value)

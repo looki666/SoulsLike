@@ -93,7 +93,6 @@ public class KinematicMotor : MonoBehaviour {
         RaycastHit groundInfo;
 
         isGrounded = CheckGrounding(out groundInfo);
-        Debug.Log(gameObject.name + "  "+ isGrounded);
         if (isGrounded)
         {
             movementSpeed.y = CalculateFallingSpeedRemainder(groundInfo);
@@ -142,7 +141,6 @@ public class KinematicMotor : MonoBehaviour {
 
         if (hitGround)
         {
-            Debug.Log(gameObject.name + "   " + hitInfo.collider.name + " " + hitInfo.distance);
             if (hitInfo.collider.isTrigger)
             {
                 return false;
@@ -198,10 +196,15 @@ public class KinematicMotor : MonoBehaviour {
             Vector3 castDirection = movementSpeed.normalized;
             Vector3 castStartBackOffset = origin - (castDirection * backstepOffset);
 
-            float offSetCapsule = col.height / 2 - col.radius;
+            float offSetCapsule = col.height - col.radius;
             Vector3 castStartBackOffsetTop = castStartBackOffset + transform.up * offSetCapsule;
-            Vector3 castStartBackOffsetBot = castStartBackOffset - transform.up * offSetCapsule;
+            Vector3 castStartBackOffsetBot = castStartBackOffset + transform.up * col.radius;
 
+            DebugExtension.DebugWireSphere(castStartBackOffsetTop, Color.red, col.radius);
+            DebugExtension.DebugWireSphere(castStartBackOffsetBot, Color.red, col.radius);
+
+            DebugExtension.DebugWireSphere(castStartBackOffsetTop + castDirection * castDistance, Color.blue, col.radius);
+            DebugExtension.DebugWireSphere(castStartBackOffsetBot + castDirection * castDistance, Color.blue, col.radius);
             RaycastHit hitInfo;
             if (Physics.CapsuleCast(castStartBackOffsetTop, castStartBackOffsetBot, col.radius, castDirection, out hitInfo, castDistance, LayerMaskCollision))
             {
